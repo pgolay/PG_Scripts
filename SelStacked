@@ -1,0 +1,39 @@
+import Rhino
+import rhinoscriptsyntax as rs
+import scriptcontext as sc
+ 
+#Select curves and surfaces that have stacked control points
+ 
+def selStacked():
+    count = 0
+    Ids = rs.ObjectsByType(4+8)
+    
+    if not Ids:
+        print "No curves or surfaces found."
+        return
+    
+    for Id in Ids:
+        
+        
+        if rs.IsSurface(Id):
+            
+            pts = sc.doc.Objects.Find(Id).Geometry.Surfaces[0].Points
+        else:
+            pts  = sc.doc.Objects.Find(Id).Geometry.Points 
+ 
+        G = list(pts)
+        ploc = []
+        for g in G:
+            ploc.append(g.Location)
+ 
+        for pt in ploc:
+            if ploc.count(pt) > 1:
+                if rs.IsObjectSelectable(Id): 
+                    rs.SelectObject (Id)
+                    count = count + 1
+                break
+        
+    print str(count) + " objects with stacked points found and selected."
+    sc.doc.Views.Redraw()
+    
+selStacked()
