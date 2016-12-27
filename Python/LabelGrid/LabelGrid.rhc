@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-16"?>
+<RhinoScriptCompilerProject>
+  <Plugin>
+    <PluginName>LabelGrid</PluginName>
+    <PluginFolder>C:\Users\Pascal\Google Drive\Scripting\LabelGrid\</PluginFolder>
+    <AuthorName>Pascal</AuthorName>
+    <AuthorEmail>pascal@mcneel.com</AuthorEmail>
+    <AuthorPhone />
+    <AuthorAddress>3670 Woodland Park Ave.N.
+Seattle, WA
+98103</AuthorAddress>
+    <AuthorCountry>USA</AuthorCountry>
+    <AuthorWebsite />
+    <UpdateURL />
+    <CopyrightMessage />
+    <RhinoCommonOverride />
+  </Plugin>
+  <Commands />
+  <Menu />
+</RhinoScriptCompilerProject>
