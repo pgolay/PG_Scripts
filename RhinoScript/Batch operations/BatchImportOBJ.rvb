@@ -1,0 +1,70 @@
+﻿'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+  ' BatchImportOBJ script for Rhinoceros
+  ' Robert McNeel & Associates
+  ' www.rhino3d.com
+  '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+  
+  Option Explicit
+  
+  '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'BatchImportOBJ
+  '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Private sOldFolder
+If isEmpty(sOldFolder) Then
+	sOldFolder = Rhino.WorkingFolder
+End If
+
+
+Sub BatchImportOBJ()
+    
+
+	' Rhino.Command "_-Options _RhinoScript _Reinitialize=_No _Enter _Enter", 0
+  
+	' Allow the user to interactively pick a folder
+	Dim sFolder
+	sFolder = Rhino.BrowseForFolder(sOldFolder, "Select folder to process", "Batch Import OBJ")
+	If VarType(sFolder) <> vbString Then 
+		Exit Sub
+	Else sOldFolder = sFolder
+	End If
+	
+  
+	' Create a file system object
+	Dim oFSO
+	Set oFSO = CreateObject("Scripting.FileSystemObject") 
+  
+	' Get a folder object based on the selected folder
+	Dim oFolder
+	Set oFolder = oFSO.GetFolder(sFolder)
+    
+	' Process the folder
+	ProcessFolder oFSO, oFolder
+  
+	' Release the objects
+	Set oFolder = Nothing
+	Set oFSO = Nothing
+  
+End Sub
+  
+  '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+  ' ProcessFolder
+  '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ProcessFolder(oFSO, oFolder)
+	Rhino.EnableRedraw(False)
+	' Import all obj files in the selected folder
+	Dim oFile, strOpen
+	For Each oFile In oFolder.Files
+		If LCase(oFSO.GetExtensionName(oFile.Path)) = "obj" Then
+		
+			strOpen = LCase(oFile.Path)
+
+			Rhino.Command "_NoEcho _-Import " &chr(34) & strOpen &chr(34)
+			
+		End If
+	Next
+	Rhino.EnableRedraw(True)
+End Sub 
+
+Rhino.addAlias "BatchImportOBJ", "! _NoEcho _-Runscript BatchImportOBJ"
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile

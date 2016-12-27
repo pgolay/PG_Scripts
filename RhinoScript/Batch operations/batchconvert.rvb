@@ -1,0 +1,122 @@
+'------------------------------------------------------------------------------
+  ' RhinoScript code 
+  ' Created by Brian Perry 
+  ' Version updated August 29, 2002
+  '------------------------------------------------------------------------------
+  ' Version History
+  ' 10-13-2004 Add support to recursively search subfolders as well as clearing render meshes
+  ' 10-15-2002 Updated to support Rhino3 and complete automation in v3
+  '------------------------------------------------------------------------------
+  ' Subroutine:  BatchConvert
+  ' Purpose:     Converts all Rhino supported files in a folder(s) to another format
+  '------------------------------------------------------------------------------
+
+  Sub BatchConvert
+    Dim folder, FolderObject
+    Dim strInput, strInputLen
+    Dim strOutput, strOutputLen
+    Dim bMeshes
+    bMeshes = vbFalse
+    Dim bRecurse
+    bRecurse= vbFalse
+
+    Rhino.Print("Choose a folder containing files for batch conversion")
+    folder = Rhino.BrowseForFolder
+    If VarType(folder) = vbString Then
+      ' Create a file system object
+      Set fso = CreateObject("Scripting.FileSystemObject")
+      ' Create a folder object
+      Set FolderObject = fso.GetFolder(folder)
+    Else 
+	Exit Sub
+    End If
+
+    strInput= ".3dm"
+    strInput= Rhino.GetString("Enter the source file extension")
+    If strInput= vbNull Then
+	Exit Sub
+    End If
+
+    strOutput= ".3dm"
+    strOutput= Rhino.GetString("Enter the destination file extension")
+    If strOutput= vbNull Then
+	Exit Sub
+    End If
+
+    'Ensure the file extension has the "."
+    If Left(strInput,1) <> "." Then
+      strInput= "." & strInput
+    End If 
+
+    If Left(strOutput,1) <> "." Then
+      strOutput= "." & strOutput
+    End If 
+
+    'Determine if we clear the meshes as well
+    Dim sMeshes
+    sMeshes = Rhino.GetString("ClearAllMeshes (y/n)")
+    If sMeshes = vbNull Then
+      Exit Sub
+    Else
+      If InStr(LCase(sMeshes ), "y") > 0 Then
+        bMeshes = vbTrue
+      End If
+    End If
+
+    'Determine if we search sub folders
+    Dim sRecurse
+    sRecurse= Rhino.GetString("Search Sub Folders (y/n)")
+    If sRecurse= vbNull Then
+      Exit Sub
+    Else
+      If InStr(LCase(sRecurse), "y") > 0 Then
+        bRecurse= vbTrue
+      End If
+    End If
+
+    'Lets do this thing (line 68)
+    RecurseConvert FolderObject, strInput, strOutput, bMeshes, bRecurse 
+
+    Set FolderObject = Nothing
+    Set fso = Nothing
+
+  End Sub
+
+
+Sub SaveFile(sInputName, sOutputName, bMeshes)
+  Rhino.Command "-_Open " & Chr(34) & CStr(sInputName) & Chr(34)
+
+  If bMeshes = vbTrue Then
+    Rhino.Command "_ClearAllMeshes"
+  End If
+
+  Rhino.Command "-_SaveAs " & Chr(34) & CStr(sOutputName) & Chr(34)& " _Enter" 
+End Sub
+
+'line 91
+Sub RecurseConvert( oFolder, sInput, sOutput, bMeshes, bRecurse)
+  Dim oFile
+  For Each oFile In oFolder.Files
+    Dim sFileName, sFileRoot, sExt, ExtLength
+    sFileName= CStr(oFile.Path)
+    sExt = Right(sFileName, Len(sInput))
+    If (sExt = sInput) Then
+      sFileRoot= Left(sFileName, Len(sFileName) - Len(sInput)) 
+      SaveFile sFileRoot & sInput, sFileRoot & sOutput, bMeshes
+    End If
+  Next
+
+
+  If bRecurse = vbFalse Then
+    Exit Sub
+  End If
+
+  Dim oSubFolder
+  For Each oSubFolder In oFolder.SubFolders
+    RecurseConvert oSubFolder, sInput, sOutput, bMeshes, bRecurse
+  Next
+End Sub 
+
+
+' Run the subroutine
+BatchConvert

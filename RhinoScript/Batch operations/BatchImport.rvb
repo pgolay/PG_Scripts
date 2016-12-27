@@ -1,0 +1,159 @@
+Option Explicit
+'Script written by Pascal
+'Script version Sunday, March 22, 2009 
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "BatchImport", "_NoEcho _-Runscript (BatchImport)"
+
+
+
+Private OldExtList
+If isEmpty(OldExtList) Then
+	oldExtList = array(False, False, False, False, False, False, False, False, True)
+End If
+
+ 'Call BatchImport()
+
+Sub BatchImport()
+
+	Dim sFolder: sFolder = Rhino.BrowseForFolder(Rhino.WorkingFolder, "Select  folder", "Multi-Import")
+	If isNull(sFolder) Then Exit Sub
+	
+	Dim aExt(8)
+	aExt(0) = ".3dm"
+	aExt(1) = ".igs"
+	aExt(2) = ".stp"
+	aExt(3) = ".dxf"
+	aExt(4) = ".dwg"
+	aExt(5) = ".step"
+	aExt(6) = ".iges"
+	aExt(7) = ".sldprt"
+	aExt(8) = ".stl"
+	
+	
+	Dim aExt_Sel: aExt_Sel = Rhino.CheckListBox(aExt, oldExtList, "Select formats to import.")
+	
+	If Not isArray(aExt_Sel) Then Exit Sub
+	
+	oldExtList = aExt_Sel 
+	
+	Dim aExt_to_import(), blnExt
+	Dim i, n
+	n = 0
+	i = 0
+	
+	For Each BlnExt In aExt_Sel
+		If aExt_Sel(i) = True Then 
+			ReDim Preserve aExt_to_import(n)
+			aExt_to_import(n) = aExt(i)
+			n = n + 1
+		End If
+		i = i + 1
+	Next
+	
+	Dim aFiles: aFiles = GetFormats(sFolder, aExt_to_import)
+	
+	If Not isArray(aFiles) Or Not isUpperBound(aFiles) Then
+		MsgBox "No files of the specified formats were found in the folder."
+		Exit Sub
+	End If
+	
+	Dim aImpFiles: aImpFiles = Rhino.MultiListBox(aFiles, "Select files to import", "BatchImport")
+	If Not isArray(aImpFiles) Then Exit Sub
+	
+	Dim str, sFile, FileName, aLast
+	
+	For Each sFile In aImpFiles
+		
+		Rhino.UnselectAllObjects
+		str = chr(34) & sFile & chr(34)
+		Rhino.Command "_-Import " & str & " _Enter", False
+		
+		
+		'//////////////////////////////////////////////////////////////////////////////
+		'//////////////////////////////////////////////////////////////////////////////
+		'Comment this section if you do not want objuect naming to follow the file name.
+		
+		If Rhino.LastCommandResult = 0 Then
+			aLast = Rhino.SelectedObjects
+			If isArray(alast) Then
+				FileName = GetBaseFileName(sFile)
+				Rhino.ObjectName aLast, FileName
+			End If
+		End If
+		'//////////////////////////////////////////////////////////////////////////////
+		'//////////////////////////////////////////////////////////////////////////////
+		
+		
+	Next
+	
+End Sub
+
+
+'\\\\\\\\\\\\\\\\\\\\\\\\\
+'/////////////////////////
+
+Function IsUpperBound(ByRef arr)
+
+	IsUpperBound = False
+
+	If IsArray(arr) Then
+
+		On Error Resume Next
+
+		UBound arr
+
+		If Err.Number = 0 Then IsUpperBound = True
+
+	End If
+
+End Function
+
+Function GetFormats(sFolder, aExt)
+	
+	Dim objFSO,objFolder,colFiles
+	Set objFSO = createobject("Scripting.FileSystemObject")
+	Set objFolder = objFSO.GetFolder(sFolder)
+
+	Set colFiles = objFolder.files
+	Dim aPossible(), n
+	n = 0
+	Dim objFile, sExt, temp
+	
+	For Each objFile In objFolder.Files
+		For Each sExt In aExt
+			temp = RIGHT(lCASE(objFile.Path), LEN(sExt))
+			If temp = sExt Then
+				ReDim Preserve aPossible(n)
+				aPossible(n) = ObjFile
+				n = n + 1
+			End If
+		Next
+	Next
+	
+	Set objFSO = Nothing
+	Set objFolder = Nothing
+	Set colFiles = Nothing
+	If IsEmpty(aPossible) Then
+		GetFormats = Null 
+	Else
+		GetFormats = aPossible	
+	End If
+	
+
+End Function
+
+
+Function GetBaseFileName(sFile)
+
+	Dim intFile,lenFile
+	intFile = InstrRev(sFile, "\")
+	lenFile = len(sFile)
+	sFile = Right(sfile, lenFile - intFile)
+	intFile = instr(sFile, ".")
+	lenFile = len(sFile)
+	sFile = Left(sfile, intFile - 1)
+	
+	
+	GetBaseFilename = sFile
+End Function

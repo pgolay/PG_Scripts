@@ -1,0 +1,163 @@
+Option Explicit
+	
+'Script written by Pascal
+'Company: RMA
+'Script version Saturday, August 11, 2007
+
+'Saves copies of all v4 files in a folder to V3 or V2 format and decorates the name
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "BatchSave3dm" , "_NoEcho _-Runscript BatchSave3dm"
+
+
+Private OldFolder, OldIntVersion
+If IsEmpty(OldFolder) Then
+	OldFolder = "D:\Projects\McNeel\4.0\SourceSafe\Templates"
+End If
+
+If IsEmpty (OldIntVersion) Then
+	OldIntVersion = 3
+End If
+
+
+
+Sub BatchSave3dm
+
+	Dim CurrentFile : CurrentFile = Rhino.DocumentName
+	Dim templatepath : TemplatePath = Rhino.TemplateFolder
+	Dim sTemplate : sTemplate = Rhino.TemplateFIle
+	
+	Dim B : B = False 'marker tells the script if the current file is untitled
+	
+	If Not isNull (CurrentFile) Then
+		
+		'The current document and path for reopening after the processing of the files
+		Dim CurrentPath : CurrentPath = Rhino.DocumentPath 
+		Dim CurrentFullPath : CurrentFullPath = CurrentPath & CurrentFile
+
+		If CurrentPath = TemplatePath Then
+			B = True 'Untitled, most likely
+		End If
+	Else Exit Sub
+		
+	End If	
+
+	'get the desired version to save
+	Dim IntVersion : IntVersion = Rhino.GetInteger("Rhino version format for output:", OldIntVersion,2,4)
+	
+	If isnull(intVersion) Then
+		Exit Sub
+		'make this rth default for next time
+	Else OldIntversion = Intversion
+	End If		
+
+	Dim fso, s, t, ext, strFolder, arrFiles, strFile
+	
+	'set the file system object
+	Set fso=CreateObject("Scripting.FileSystemObject")
+	
+	'get the folder to process
+	Dim FolderSpec : FolderSpec  = Rhino.BrowseForFolder(OldFolder)
+ 
+	If Not IsNull(FolderSpec) Then
+		OldFolder = FolderSpec
+	Else Exit Sub
+	End If
+    
+	Dim p, path, fullpath
+	Set p = fso.getFolder(FolderSpec)
+	path = p.path
+
+	
+	'get the list of files
+	Dim arr: arr = ShowFileList(FolderSpec)
+	Dim temp
+	s = arr(0)
+
+	arrFiles = Split(s,"*")
+  
+	If IsArray(arrFiles) Then
+		Rhino.EnableRedraw(False)
+    
+		Dim sError : sError = "Error saving "
+		Dim sVersion : sVersion = "_V" & intVersion & "."
+		
+		For Each strFile In arrFiles 
+    
+			'define the path
+			FullPath =  Path &"\" & strFile
+			
+			'get the file extension
+			ext = fso.GetExtensionName(FullPath)
+
+			If ext = "3dm" Then
+				'make a new file name with the version number
+				temp = replace(FullPath, "." &ext, sVersion &ext)
+				Rhino.Command "-Open " &Chr(34) &Fullpath &Chr(34) &" ", False
+				
+				'open the file
+				If Rhino.ReadFileVersion () = 4 Then
+					If Rhino.LastCommandResult = 0 Then
+						'save to the correct version number and decorate the name
+						Rhino.Command "_-SaveAs _Version=" & intVersion & " _SaveSmall=_Yes " & chr(34) &temp &chr(34), False
+					End If
+					
+					'confirm the save to the command line
+					If Rhino.LastCommandResult = 0 Then
+						Rhino.Print "********" &temp & " OK *********"
+					End If
+				End If
+				'tell the user about non-v4 3dm files
+			Else Rhino.Print strFile & "is not a v4 file."
+			
+			End If 
+			
+		Next  
+		Rhino.EnableRedraw(True)
+	Else Exit Sub
+	End If
+	
+	
+	'reopen the original file or start a new file if the orginal was untitled
+	If B = False Then
+		Rhino.Command "_-Open " &Chr(34) & CurrentFullPath &Chr(34)
+	Else 
+		If Not isnull(stemplate) Then
+			Rhino.Command "_-New " &Chr(34) & sTemplate &Chr(34) 
+		End If
+			
+	End If
+		
+	'Rhino.Command "CommandHistory "
+  
+End Sub
+
+
+
+
+Function ShowFileList(FolderSpec)
+  
+	Dim  f, f1, fc, s,t,  fso
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	Set f = fso.GetFolder(FolderSpec)
+	Set fc = f.Files
+	For Each f1 In fc
+		t = f1.name 
+
+		s = s & f1.name 
+		s = s & "*"
+	Next
+	ShowFileList = array(s,t)
+   
+End Function
+
+'////////////////////////////
+'\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+
+Function GetFileExtension( DriveSpec)
+  
+	Dim fso
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	GetFileExtension = fso.GetExtensionName(Fullpath)
+   
+End Function

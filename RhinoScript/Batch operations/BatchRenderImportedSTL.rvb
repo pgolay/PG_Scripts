@@ -1,0 +1,118 @@
+﻿Option Explicit
+'Script written by Pascal
+'RMA
+'Script version Monday, May 12, 2008
+Private sOldFolder, sOldFormat
+
+If isEmpty(sOldFolder) Then
+	sOldFolder = Rhino.WorkingFolder
+End If
+If isEmpty(sOldFormat) Then
+	sOldFormat = "*.png"
+End If
+
+
+Sub BatchRenderImportedSTL()
+
+	Dim sBaseFolder : sbaseFolder = Rhino.WorkingFolder
+	
+	Dim sFolder : sFolder = Rhino.BrowseForFolder(sOldFolder, "Select folder to process", "Batch Render STL")
+	If VarType(sFolder) <> vbString Then 
+		Exit Sub
+	Else sOldFolder = sFolder
+	End If
+	Dim aFormats : aFormats  = array(".png", ".jpg", ".tif",".tga",".bmp",".pcx")
+	
+	Dim sFormat: sFormat = Rhino.GetString("Choose image file format", sOldFormat, aFormats)
+	
+	If CheckValidArray(aFormats,sFormat) Then
+		sFormat = Right(lCase (sFormat),3)
+		sOldFormat = sFormat
+	Else
+		msgBox "Invalid image file format."
+		Exit Sub
+		
+	End If
+	
+	' Create a file system object
+	Dim oFSO
+	Set oFSO = CreateObject("Scripting.FileSystemObject") 
+  
+	' Get a folder object based on the selected folder
+	Dim oFolder
+	Set oFolder = oFSO.GetFolder(sFolder)
+    
+	' Process the folder
+	ProcessFolder oFSO, oFolder,  sFolder, sFormat
+	
+End Sub
+
+Sub ProcessFolder(oFSO, oFolder,  sFolder, sFormat)
+	
+	Rhino.EnableRedraw(False)
+	' Import all STL files in the selected folder
+	Dim oFile, strOpen, fileName
+	Dim sFilename, aDelete
+	
+	For Each oFile In oFolder.Files
+		sFileName = ofso.GetFileName(Ofile)
+		
+		If LCase(oFSO.GetExtensionName(oFile.Path)) = "stl" Then
+			fileName = sFileName
+
+			strOpen = LCase(oFile.Path)
+			Rhino.Command "_-Import " &chr(34) &StrOpen &chr(34) &" ", False
+			Rhino.UnselectAllObjects
+			Rhino.command " _SetActiveViewport Perspective", False
+			Rhino.ZoomExtents
+			Rhino.AllObjects True
+			Rhino.Command "_Join", False
+			Rhino.Command "_ClearUndo", False
+			Rhino.Command "_Weld 180 ", False
+			Rhino.Command "_ClearUndo",False
+			Rhino.Command " _-Render " &chr(34) & strOpen &chr(34), False
+			
+			Rhino.DocumentModified (False)
+		End If
+		
+		Dim str
+		
+		On Error Resume Next
+		If Rhino.LastCommandResult = 0 Then
+			sFilename = replace(sFilename,"stl",sFormat)
+			str = chr(34) &sFolder & sFilename &chr(34)
+			str = "_-SaverenderWindowAs " & str
+			Rhino.Command str , False
+		
+			Rhino.Command "_CloseRenderWindow", False	
+				
+		End If
+		
+		aDelete =	Rhino.AllObjects( True)
+		If isArray(aDelete) Then
+			Rhino.DeleteObjects(aDelete)
+		End If
+	Next
+	
+	Rhino.EnableRedraw(True)
+	
+End Sub 
+
+Function CheckValidArray(arrCheck, strToCheck)
+
+	Dim blnStatus, strCheck
+
+	blnStatus =False
+	If IsArray(arrCheck) Then
+		For Each strCheck In arrCheck
+			If UCase(strToCheck) = UCase(strCheck) Or strToCheck = ""Then
+				blnStatus = True
+				Exit For
+			End If
+		Next
+	End If
+	CheckValidArray = blnStatus
+
+End Function
+Rhino.addAlias "BatchRenderImportedeSTL", "! _NoEcho _-Runscript BatchRenderImportedSTL"
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile

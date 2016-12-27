@@ -1,0 +1,108 @@
+Option Explicit
+'Script written by Pascal
+' RMA
+'Script version Friday, September 21, 2012
+
+Rhino.AddStartUpScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "BatchImportPoints", "_NoEcho _-Runscript (BatchImportPoints)"
+
+Private OldDel
+If isEmpty(OldDel) Then
+	OldDel = "Comma"
+End If
+
+Call BatchImportPoints()
+Sub BatchImportPoints()
+
+	Dim aFiles: aFiles = Rhino.OpenFileNames("Open", "xyz Files (*.xyz)|*.xyz|Point Files (*.pts)|*.pts|Text Files (*.txt)|*.txt|All Files (*.*)|*.*||")
+	If Not isArray(aFiles) Then Exit Sub
+	
+	
+	Dim sFile
+	
+	Dim PC: PC = Rhino.GetString("Create point cloud?", "None", array("None", "PerFile", "AllFiles"))
+	If isNull(PC) Then Exit Sub
+	Dim intPC: IntPC = CheckValidArray(array("None", "PerFile", "AllFiles"), PC)
+	If intPC = -1 Then Exit Sub
+	
+	Dim aDel: aDel = array("Comma", "Space", "Tab", "SemiColon")
+	Dim sdel: sDel = Rhino.getString("Delimeter.", OldDel, aDel)
+	Dim intDel: intDel = CheckValidArray(aDel, sDel)
+	If intDel = -1 Then Exit Sub
+	OldDel = aDel(intDel)
+	
+	If intDel = 0 Then 
+		del = chr(44)
+	ElseIf intDel = 1 Then
+		del = chr(32)
+	ElseIf intDel = 2 Then
+		del = "TAB"
+	ElseIf intDel = 3 Then
+		del = chr(59)
+	End If
+	
+	Dim C, X,Del
+	X = 0
+	
+	Rhino.EnableRedraw(False)
+	
+	For Each sFile In aFiles
+		
+		'	Rhino.Command "_-Import " & chr(34) & sFile & chr(34) & " _Enter", False
+		C = Rhino.ReadDelimitedFile(sFile, del, True)
+		Dim aPts, allPts
+		aPts = extractPointCoords(C)
+		If X = 0 Then allPts = aPts
+		
+		If isArray(aPts) Then
+			 
+			If intPC = 2 Then
+				If X = 1 Then	allPts = Rhino.JoinArrays(allPts, aPts)
+			ElseIf intPc = 1 Then
+				Rhino.AddPointCloud aPts
+			ElseIf intPC = 0 Then
+				Rhino.AddPoints aPts
+			End If
+			
+		End If
+		x = 1
+	Next
+	
+	If intPC = 2 Then
+		Rhino.AddPointCloud(Rhino.CullDuplicatePoints(AllPts))
+	End If
+	
+	Rhino.EnableRedraw(True)
+	
+End Sub
+
+Function ExtractPointCoords(Arr)
+	'2d array of point coordinates
+	Dim Bound: Bound = UBound(arr)
+	Dim aPts, i
+	ReDim aPts(Bound)
+	For i = 0 To Bound
+		
+		aPts(i) = Array(arr(i, 0), arr(i, 1), arr(i, 2))
+		
+	Next
+	ExtractPointCoords = aPts
+	
+End Function
+
+Function CheckValidArray(aCheck, sToCheck)
+	
+	CheckValidArray = -1
+	Dim  sCheck, n
+	n = 0
+	sToCheck = UCase(sToCheck)
+	
+	For Each sCheck In aCheck
+		If UCase(sCheck) = sToCheck Then
+			CheckValidArray = n
+			Exit Function
+		End If
+		n = n + 1
+	Next
+
+End Function

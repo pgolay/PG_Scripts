@@ -1,0 +1,99 @@
+Option Explicit
+'Script written by Pascal
+'Script version Sunday, March 22, 2009 
+'
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "ImportToLayers", "_NoEcho _-Runscript (ImportToLayers)"
+
+'Call ImportToLayers()
+
+Sub ImportToLayers()
+
+	Dim sFolder: sFolder = Rhino.BrowseForFolder(Rhino.WorkingFolder, "Select  folder", "Multi-Import")
+	If isNull(sFolder) Then Exit Sub
+	
+	Dim aExt(9)
+	aExt(0) = ".3dm"
+	aExt(1) = ".igs"
+	aExt(2) = ".iges"
+	aExt(3) = ".stp"
+	aExt(4) = ".dxf"
+	aExt(5) = ".dwg"
+	aExt(6) = ".step"
+	aExt(7) = ".sldprt"
+	aExt(8) = ".sldasm"
+	aExt(9) = ".stl"
+	
+	Dim aImportExt: aImportExt = Rhino.MultiListBox(aExt, "Formats to import.", "Batch Import and Name")
+	If isNull(aImportExt) Then Exit Sub
+	
+	Dim aFiles: aFiles = GetFormats(sFolder, aImportExt)
+	
+	Dim aImpFiles: aImpFiles = Rhino.MultiListBox(aFiles, "Select files to import", "BatchImport")
+	If Not isArray(aImpFiles) Then Exit Sub
+	
+	Dim str, sFile, FileName, aLast
+	
+	For Each sFile In aImpFiles
+		
+		Rhino.UnselectAllObjects
+		str = chr(34) & sFile & chr(34)
+		Rhino.Command "_-Import " & str & " _Enter", False
+		
+		If Rhino.LastCommandResult = 0 Then
+			aLast = Rhino.SelectedObjects
+			If isArray(alast) Then
+				FileName = GetBaseFileName(sFile)
+				Rhino.ObjectName aLast, FileName
+				If Not Rhino.IsLayer(FileName) Then Rhino.AddLayer FileName
+				Rhino.ObjectLayer aLast, FileName
+			End If
+		End If
+		
+	Next
+	
+End Sub
+
+Function GetFormats(sFolder, aExt)
+	
+	Dim objFSO,objFolder,colFiles
+	Set objFSO = createobject("Scripting.FileSystemObject")
+	Set objFolder = objFSO.GetFolder(sFolder)
+
+	Set colFiles = objFolder.files
+	Dim aPossible(), n
+	n = 0
+	Dim objFile, sExt, temp
+	
+	For Each objFile In objFolder.Files
+		For Each sExt In aExt
+			temp = RIGHT(lCASE(objFile.Path), LEN(sExt))
+			If temp = sExt Then
+				ReDim Preserve aPossible(n)
+				aPossible(n) = ObjFile
+				n = n + 1
+			End If
+		Next
+	Next
+	
+	Set objFSO = Nothing
+	Set objFolder = Nothing
+	Set colFiles = Nothing
+	GetFormats = aPossible
+
+End Function
+
+
+Function GetBaseFileName(sFile)
+
+	Dim intFile,lenFile
+	intFile = InstrRev(sFile, "\")
+	lenFile = len(sFile)
+	sFile = Right(sfile, lenFile - intFile)
+	intFile = instr(sFile, ".")
+	lenFile = len(sFile)
+	sFile = Left(sfile, intFile - 1)
+	
+	
+	GetBaseFilename = sFile
+End Function
