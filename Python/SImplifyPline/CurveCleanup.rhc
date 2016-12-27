@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-16"?>
+<RhinoScriptCompilerProject>
+  <Plugin>
+    <PluginName>CurveCleanup</PluginName>
+    <PluginFolder>C:\Users\pascal\Google Drive\Scripting\SImplifyPLine\</PluginFolder>
+    <AuthorName>Pascal</AuthorName>
+    <AuthorEmail>pascal@mcneel.com</AuthorEmail>
+    <AuthorPhone />
+    <AuthorAddress>3670 Woodland Park Ave.N.
+Seattle, WA
+98103</AuthorAddress>
+    <AuthorCountry>USA</AuthorCountry>
+    <AuthorWebsite>www.rhino3d.com</AuthorWebsite>
+    <UpdateURL />
+    <CopyrightMessage>Loading CurveCleanup plug-in.</CopyrightMessage>
+    <RhinoCommonOverride>C:\Users\pascal\Google Drive\Scripting\V5 SR9 RhinoCommon\RhinoCommon.dll</RhinoCommonOverride>
+  </Plugin>
+  <Commands>
+    <!--Compiled Script: CleanUpCurves-->
+    <Command>
+      <Name>CleanUpCurves</Name>
+      <Path>C:\Users\pascal\Google Drive\Scripting\SImplifyPLine\CrvCleanup.py</Path>
+      <Type>Normal</Type>
+    </Command>
+    <!--Compiled Script: CleanUpPolyline-->
+    <Command>
+      <Name>CleanUpPolyline</Name>
+      <Path>C:\Users\pascal\Google Drive\Scripting\SImplifyPLine\CleanUpPolyline.py</Path>
+      <Type>Normal</Type>
+    </Command>
+  </Commands>
+  <Menu />
+</RhinoScriptCompilerProject>
