@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-16"?>
+<RhinoScriptCompilerProject>
+  <Plugin>
+    <PluginName>ExtractTangentFaces</PluginName>
+    <PluginFolder>C:\Users\Pascal\Google Drive\Scripting\ExtractTangentFaces\</PluginFolder>
+    <AuthorName>Pascal</AuthorName>
+    <AuthorEmail>pascal@mcneel.com</AuthorEmail>
+    <AuthorPhone />
+    <AuthorAddress>3670 Woodland Park Ave.N.
+Seattle, WA
+98103</AuthorAddress>
+    <AuthorCountry>USA</AuthorCountry>
+    <AuthorWebsite />
+    <UpdateURL />
+    <CopyrightMessage />
+    <RhinoCommonOverride />
+  </Plugin>
+  <Commands>
+    <!--Compiled Script: ExtractTangentFaces-->
+    <Command>
+      <Name>ExtractTangentFaces</Name>
+      <Path>C:\Users\Pascal\Google Drive\Scripting\ExtractTangentFaces\ExtractTangentFaces.py</Path>
+      <Type>Normal</Type>
+    </Command>
+  </Commands>
+  <Menu />
+</RhinoScriptCompilerProject>
