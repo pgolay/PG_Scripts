@@ -1,0 +1,25 @@
+﻿Option Explicit
+'Script written by Pascal
+'Script version Tuesday, March 03, 2009
+
+Rhino.AddStartUpScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "SelChainTol","_NoEcho _-RunScript (SelChainTol)"
+
+Private OldTol
+
+If isEmpty(OldTol) Then
+	OldTol =  Rhino.UnitAngleTolerance
+End If
+
+
+Sub SelChainTol()
+	
+	Dim Angtol: angTol = Rhino.UnitAngleTolerance
+	Dim NewTol: newTol = Rhino.GetReal("SelChain tangency tolerance",OldTol,0,90)
+	If Not IsNumeric(NewTol) Then Exit Sub
+	OldTol = NewTol
+	Rhino.UnitAngleTolerance NewTol
+	Rhino.Command "_SelChain _ChainContinuity=_Tangency"
+	Rhino.UnitAngleTolerance angTol
+
+End Sub

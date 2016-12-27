@@ -1,0 +1,106 @@
+option Explicit
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptfile
+Rhino.AddAlias "SelListedLineType" , "_-Runscript SelListedLineType"
+Rhino.AddAlias "SelLineType" , "_-Runscript SelLineType"
+
+
+Sub SelListedLineType
+
+	Dim arrLineTypes, strLinetype, arrNames, A
+	A = False
+
+	arrNames = Rhino.LinetypeNames
+	arrLineTypes = Rhino.MultiListBox(arrNames)
+	If not isArray(arrLineTypes) then exit sub
+	
+	Dim arrObjects, strObject
+	arrObjects = Rhino.ObjectsbyType(4)
+	
+	If not isArray(arrObjects) then  exit sub
+	
+	Rhino.EnableRedraw False
+
+	For Each strLineType In arrLineTypes
+			
+		For Each strObject In arrObjects
+
+			
+			If StrComp(Rhino.ObjectLinetype(strObject), strLinetype, 1) = 0 Then
+				Rhino.SelectObject(strObject)
+				A = True
+			End If
+		Next
+	Next
+  
+
+	Rhino.EnableRedraw True
+	If A = False Then
+		Rhino.Print "No objects of this line type found. Nothing added to the selection."
+	End If
+  
+End Sub
+
+
+Sub SelLineType
+	
+	Dim arrLineTypes, strLinetype, A
+	A = False
+
+	Dim arrObjects, strObject
+	arrObjects = Rhino.ObjectsByType(4)
+	If not isArray(arrObjects) then  exit sub
+	
+	Dim aSel: aSel = Rhino.GetObjects("Select curves",4,,true)
+	If not isArray(aSel) then Exit sub
+	
+	dim aLT(), n, sSel
+	n = 0
+	
+	For each sSel in aSel
+		redim preserve aLT(n)
+		aLT(n) = Rhino.ObjectLineType(sSel)
+		n = n + 1
+	Next
+	
+	If Not isUpperBound(aLT) then exit sub
+		
+	Rhino.EnableRedraw False
+	For Each strLineType In aLT
+			
+		For Each strObject In arrObjects
+			If StrComp(Rhino.ObjectLinetype(strObject), strLinetype, 1) = 0 Then
+				Rhino.SelectObject(strObject)
+				A = True
+			End If
+		Next
+	Next
+  
+	Rhino.EnableRedraw True
+	If A = False Then
+		Rhino.Print "No objects of this line type found. Nothing added to the selection."
+	End If
+	
+	
+End Sub
+
+
+'////////////////////////////
+'\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+
+Function IsUpperBound(ByRef arr)
+
+	IsUpperBound = False
+
+	If IsArray(arr) Then
+
+		On Error Resume Next
+
+		UBound arr
+
+		If Err.Number = 0 Then IsUpperBound = True
+
+	End If
+
+End Function

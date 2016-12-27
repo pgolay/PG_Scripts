@@ -1,0 +1,43 @@
+Option Explicit
+'Script written by Pascal
+' Friday, September 12, 2008 
+
+Private OldMax
+If IsEmpty(oldMax) Then
+	oldMax = 1
+End If
+
+'Call selSmallSrf()
+Sub SelSmallSrf()
+	Dim aObj: aObj = Rhino.ObjectsbyType(8 + 16)
+	If Not IsArray(aObj) Then Exit Sub
+	
+	Dim Max: Max = Rhino.GetReal("Maximum area in model units", oldMax)
+	
+	If Not isNumeric(Max) Then Exit Sub
+	
+	OldMax = Max
+	Dim sSrf
+	
+	Rhino.EnableRedraw(False)
+	
+	For Each sSrf In aObj
+		
+		If Rhino.IsObjectNormal(sSrf) Then
+			If Not isNull(Rhino.SurfaceArea(sSrf)(0)) Then
+				
+				If Rhino.SurfaceArea(sSrf)(0) < Max Then
+					Rhino.SelectObject sSrf
+				End If
+				
+			End If
+		End If
+		
+	Next
+	
+	Rhino.EnableRedraw(True)
+	
+End Sub
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "SelSmallSrf", "_NoEcho _-Runscript (SelSmallSrf)"

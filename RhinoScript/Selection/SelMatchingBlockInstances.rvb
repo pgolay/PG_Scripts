@@ -1,0 +1,31 @@
+﻿Option Explicit
+'Script written by Pascal
+' RMA
+'Script version Thursday, February 07, 2013
+
+Rhino.AddStartUpScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "SelMatchingBlockInstances", "_NoEcho _-Runscript (SelMatchingBlockInstances)"
+
+'Call SelMatchingBlockInstances()
+Sub SelMatchingBlockInstances()
+
+	Dim aSel: aSel = Rhino.SelectedObjects()
+	
+	Dim sobj: sObj = Rhino.GetObject("Select block instance.", 4096)
+	If isArray(aSel) Then Rhino.SelectObjects aSel
+	If isNull(sObj) Then Exit Sub
+	
+	Dim sName: sName = Rhino.BlockInstanceName(sObj)
+	
+	Dim aBlocks: aBlocks = Rhino.ObjectsByType(4096)
+	
+	Rhino.EnableRedraw False
+	Dim sBlock
+	For Each sBlock In aBlocks
+		If Rhino.BlockInstanceName(sBlock) = sname Then Rhino.SelectObject(sBlock)
+	Next
+	
+	
+	Rhino.EnableRedraw True
+	
+End Sub

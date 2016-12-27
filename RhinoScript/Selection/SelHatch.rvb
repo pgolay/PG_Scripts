@@ -1,0 +1,62 @@
+﻿
+'Tools for selecting hatches, hatches by color, 
+'and block instances by name by selection or list.
+Option explicit
+
+Sub SelHatch
+	Dim arrObj
+	arrObj = Rhino.ObjectsByType(65536)
+	If IsArray (arrObj) Then
+		Rhino.SelectObjects(arrObj)
+	End If
+End Sub
+
+'/////////////////////////////////
+'/////////////////////////////////
+
+Sub SelHatchByColor
+  
+	Dim arrSel, arrTemp(), arrHatch, arrColor
+	Dim strHatch, strColor, i, sSel
+	i = 0
+  
+	arrSel = Rhino.getobjects("Select objects",,True,True)
+	If IsArray(arrSel) Then
+		For Each sSel In ArrSel
+			ReDim Preserve arrTemp(i)
+			arrTemp(i) = Rhino.ObjectColor(sSel)
+				i = i + 1
+		Next
+	End If
+    
+	If i>0 Then
+		arrColor = Rhino.CullDuplicateNumbers(arrTemp)
+			Else Exit Sub
+	End If
+    
+	ArrHatch = Rhino.ObjectsByType(65536)
+	If IsArray(arrHatch) Then
+		Rhino.EnableRedraw(False)
+		For Each strHatch In arrHatch
+			For Each strColor In arrColor
+				If Rhino.ObjectColor(strHatch) = strColor Then
+					Rhino.Selectobject strHatch
+				End If
+			Next
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub  
+    
+'/////////////////////////////////////
+'/////////////////////////////////////
+
+
+
+'///////////////////////////////
+'///////////////////////////////
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+
+Rhino.AddAlias "SelHatch", "_-Runscript Selhatch"
+Rhino.AddAlias "SelHatchbyColor", "_-Runscript SelHatchbyColor"

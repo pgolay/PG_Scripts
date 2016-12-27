@@ -1,0 +1,118 @@
+Option Explicit
+
+Rhino.AddAlias "SelArc", "! _NoEcho _-RunScript SelArc"
+Rhino.AddAlias "SelCircle", "! _NoEcho _-RunScript SelCircle"
+Rhino.AddAlias "SelCircleRad", "! _NoEcho _-RunScript SelCircleRad"
+Rhino.AddAlias "SelArcRad", "! _NoEcho _-RunScript SelArcRad"
+Rhino.AddStartUpScript Rhino.LastLoadedScriptFile
+
+Private oldArcRad, oldCircleRad
+
+If isEmpty(oldArcrad) Then
+	oldArcrad = 1
+End If
+
+If isEmpty(oldCirclerad) Then
+	oldCircleRad = 1
+End If
+
+'------------------------------
+'------------------------------
+
+Sub selCircle()
+	SelArcCurves 0, 0, 0
+End Sub
+
+Sub selCircleRad()
+	
+	Dim dblRad: dblRad = Rhino.GetReal("Circle radius to select.", OldCircleRad, 10 * Rhino.UnitAbsoluteTolerance())
+	If isNull(dblRad) Then Exit Sub
+	oldCircleRad = dblrad
+	SelArcCurves 0, 1, dblRad
+
+End Sub
+	
+Sub SelArc()
+	SelArcCurves 1, False, 0
+End Sub
+
+Sub SelArcRad()
+	
+	Dim dblRad: dblRad = Rhino.GetReal("Arc radius to select.", OldArcRad, 10 * Rhino.UnitAbsoluteTolerance())
+	If isNull(dblRad) Then Exit Sub
+	oldArcRad = dblRad
+	SelArcCurves 1, True, dblRad
+	
+End Sub
+
+
+'------------------------------
+'------------------------------
+
+Sub SelArcCurves(intType, BlnRad, dblRad)
+	Dim arr, str, i
+	i = 0
+	Dim tol: tol = Rhino.UnitAbsoluteTolerance()
+	arr = Rhino.UnselectedObjects()
+	Dim sType
+	If Not IsArray(arr) Then Exit Sub
+	Rhino.EnableRedraw(False)
+	
+	Dim x
+	If intType = 1 Then
+		sType = "arc"
+			
+		For Each str In arr
+			If Rhino.IsObjectSelectable(str) Then
+				If Rhino.isArc(str)  Then
+					If blnRad Then 
+						x = (Rhino.ArcRadius(str) - dblRad)
+						If abs(Rhino.ArcRadius(str) - dblRad) < tol Then
+							Rhino.SelectObject str
+							i = i + 1
+						End If
+					Else
+						Rhino.SelectObject str
+						i = i + 1
+					End If
+				End If
+        
+			End If
+		Next
+		
+	Else
+		stype = "circle"
+		For Each str In arr
+			If Rhino.IsObjectSelectable(str) Then
+				If Rhino.isCircle(str)  Then
+					'If Not Rhino.IsEllipticalArc(str) Then
+					If blnRad Then 
+						If abs(Rhino.CircleRadius(str) - dblRad) < tol Then
+							Rhino.SelectObject str
+							i = i + 1
+						End If
+					Else
+						Rhino.SelectObject str
+						i = i + 1
+						
+					End If
+				End If
+			End If
+		Next
+			
+	End If
+	
+	Rhino.EnableRedraw(True)
+		
+	If i = 1 Then
+		Rhino.Print "1 " & stype & " added To the selection."
+	ElseIf i > 1 Then
+		Rhino.Print i & " " & sType & "s added to the selection."
+	Else
+		Rhino.Print "No unselected " & stype & "s found. Nothing was added to the selection"
+	End If
+
+
+End Sub
+	'SelArc
+

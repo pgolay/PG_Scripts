@@ -1,0 +1,104 @@
+﻿Option Explicit
+'Script written by Pascal
+'Company: RMA
+'Script version Thursday, April 12, 2007 5:04:23 PM
+
+
+Sub SelBlockByName
+	Dim arrSel, arrTemp(), arrBlock, arrName
+	Dim strBlock, strName, i
+	i = 0
+  
+	arrSel = Rhino.getobjects("Select objects",4096,True,True)
+	If IsArray(arrSel) Then
+		For Each strSel In arrSel
+			ReDim Preserve arrTemp(i)
+			arrTemp(i) = Rhino.BlockInstanceName(strSel)
+				i = i + 1
+		Next
+	End If
+    
+	If IsUpperBound(arrtemp) Then
+		arrName = Rhino.CullDuplicateStrings(arrTemp)
+			Else Exit Sub
+	End If
+    
+	ArrBlock = Rhino.ObjectsByType(4096)
+	If IsArray(arrBlock) Then
+		For Each strBlock In arrBlock
+			For Each strName In arrName
+				If Rhino.BlockInstancename(strBlock) = strName Then
+					Rhino.Selectobject strBlock
+				End If
+			Next
+		Next
+	End If
+    
+End Sub 
+    
+'/////////////////////////////////////
+'/////////////////////////////////////
+
+Sub SelBlockFromList
+	Dim arrSel, arrTemp(), arrBlock, arrBlockNames, arrSelNames
+	Dim strBlock, strSelName, i
+	i = 0
+  
+  
+		arrBlock = Rhino.ObjectsByType(4096)
+	If IsArray(arrBlock) Then
+		For i = 0 To UBound(arrBlock)
+			ReDim Preserve arrTemp(i)
+			arrtemp(i) = Rhino.BlockInstanceName(arrBlock(i))
+		Next
+	Else
+		MsgBox "No Block instances found."
+		Exit Sub
+	End If
+
+	arrBlockNames = Rhino.CullDuplicateStrings(arrTemp)
+    
+		arrSelNames = Rhino.MultiListBox(arrBlockNames, "Blocks to select", "Block names")
+	If Not IsArray(arrSelNames) Then
+		Exit Sub
+	End If
+  
+	ArrBlock = Rhino.ObjectsByType(4096)
+	If IsArray(arrBlock) Then
+		For Each strBlock In arrBlock
+			For Each strSelName In arrSelNames
+				If Rhino.BlockInstanceName(strBlock) = strSelName Then
+					Rhino.Selectobject strBlock
+				End If
+			Next
+		Next
+	End If
+    
+End Sub 
+    
+'/////////////////////////////////////
+'/////////////////////////////////////
+
+Function IsUpperBound(ByRef arr)
+
+	IsUpperBound = False
+
+	If IsArray(arr) Then
+
+		On Error Resume Next
+
+		UBound arr
+
+		If Err.Number = 0 Then IsUpperBound = True
+
+	End If
+
+End Function
+
+
+'///////////////////////////////
+'///////////////////////////////
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+	Rhino.AddAlias "SelBlockByName", "_-Runscript SelBlockByName"
+	Rhino.AddAlias "SelBlockFromList", "_-Runscript SelBlockFromList"

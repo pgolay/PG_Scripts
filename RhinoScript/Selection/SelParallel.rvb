@@ -1,0 +1,205 @@
+Option Explicit
+'Script written by Pascal
+
+'Script version Friday, May 30, 2008
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "SelParallel", "_NoEcho _-RunScript SelParallel"
+
+
+
+Private OldStyle, OldAxis
+
+If isEmpty(OldStyle) Then
+	oldStyle = "Select"
+End If
+
+If IsEmpty(OldAxis) Then
+	oldAxis = "X"
+	
+End If
+
+'Call SelParallel()
+
+Sub SelParallel()
+	
+	Dim aSel: aSel = Rhino.SelectedObjects()
+	
+	Dim aCrv : aCrv = Rhino.ObjectsbyType(4)
+	
+	If Not isarray(aCrv) Then
+		msgbox "No lines found."
+		Exit Sub
+	End If
+	
+	Dim aStyle: aStyle = array("Axis", "TwoPoints", "Select")
+	Dim intStyle,sStyle
+	
+	Do	
+		sStyle = Rhino.GetString("Style", OldStyle, aStyle)
+		If isNull(sStyle) Then Exit Sub
+		
+		intStyle = WhereInArray(sStyle, aStyle, 1)
+		If intStyle = -1 Then msgBox "Invalid choice."
+		
+	Loop While intStyle = -1
+
+	oldStyle = aStyle(intStyle)
+	
+	Dim aAxes: aAxes = array("X", "Y", "Z")
+	Dim sAxes, intAxis, Plane, sAxis
+	
+	If intStyle = 0 Then
+		Do
+			sAxis = Rhino.GetString("Find lines parallel to Cplane axis.", OldAxis, aAxes)
+			If isNull(sAxis) Then Exit Sub
+			
+			intAxis = WhereInArray(sAxis, aAxes, 1)
+			If intAxis = -1 Then msgBox "Invalid axis choice."
+			
+		Loop While IntAxis = -1
+		
+		oldAxis = aAxes(intAxis)
+		
+		If intAxis = 2 Then 'Z axis
+			Plane = Rhino.RotatePlane(Rhino.ViewCPlane(), 90, Rhino.ViewCPlane()(2))
+		Else
+			Plane = PlaneFromX(array(Rhino.ViewCPlane()(0), Rhino.PointAdd(Rhino.ViewCPlane()(0), Rhino.ViewCPlane()(intAxis + 1))))' Rhino.ViewCPlane()
+		End If
+		
+	ElseIf intStyle = 1 Then
+		Dim aPts: aPts = Rhino.GetPoints(True, False, "First point.", "Second point.", 2)
+		If Not isArray(aPts) Then Exit Sub
+		If Ubound(aPts) <> 1 Then Exit Sub
+		Plane = PlaneFromX(apts)
+		intAxis = 0
+	Else 
+		Dim sLine, strLine
+		strLine = "Select a line."
+		Do
+		sLine = Rhino.GetObject(strLine, 4, True, False)
+			If isNull(sLine) Then Exit Sub
+			strLine = "The selection was not a line. Please select a line."
+		Loop Until Rhino.IsCurveLinear(sLine)
+		
+		Plane = PlaneFromX(array(Rhino.CurveStartPoint(sLine), Rhino.CurveEndPoint(sLine)))
+		intAxis = 0
+	End If
+
+	Dim atest(2),atest2(2), i
+	
+	For i = 0 To 2
+		If uCase(sAxis) <> aAxes(i) Then	
+			atest(i) = False
+		Else
+			atest(i) = True
+		End If
+	Next
+		
+	Dim sCrv, aStart, aEnd, vecDir, ang
+	Dim VecTest: VecTest = plane(1)
+	
+	Rhino.EnableRedraw(False)
+	
+	For Each sCrv In aCrv 
+		If Rhino.isObjectSelectable(sCrv) Then
+			If Rhino.IsCurveLinear(sCrv) Then
+				
+				aStart = Rhino.CurveStartPoint(sCrv)
+				aEnd = Rhino.CurveEndPoint(sCrv)
+				vecDir = Rhino.VectorCreate(aStart, aEnd)
+				ang = VectorAngle(VecDir, VecTest)
+			
+				If ang = 0 Or ang = 180 Then Rhino.SelectObject sCrv
+			End If
+		
+		End If
+	
+	Next
+	
+	If IsArray(aSel) Then Rhino.SelectObjects aSel
+	
+	Rhino.EnableRedraw(True)	
+	
+End Sub
+
+Function VectorAngle(Vec1, vec2)
+	
+	Vec1 = Rhino.VectorUnitize(Vec1)
+	Vec2 = Rhino.VectorUnitize(Vec2)
+	
+	Dim DP: DP = Vec1(0) * Vec2(0) + Vec1(1) * Vec2(1) + Vec1(2) * Vec2(2)
+	
+	If DP > .999999 Then
+		VectorAngle = 0
+	ElseIf DP < -.999999 Then  
+		VectorAngle = Rhino.ToDegrees(Rhino.Pi())
+	Else
+		VectorAngle = arcos(DP, False)
+	End If
+	
+End Function
+
+Function Arcos(dblAng, blnRad)
+	'dblAng input in radians
+	
+	If BlnRad = True Then 'output in radians
+		Arcos = Atn(-dblAng / Sqr(-dblAng * dblAng + 1)) + 2 * Atn(1)
+	Else 'output in degrees
+		Arcos = Rhino.ToDegrees(Atn(-dblAng / Sqr(-dblAng * dblAng + 1)) + 2 * Atn(1))
+	End If
+	
+End Function
+
+Function PlaneFromX(apts)
+	
+	Dim plane: Plane = Rhino.ViewCPlane()
+	Dim X: X = Rhino.VectorCreate(aPts(1), aPts(0))
+	Dim Z: Z = Plane(3)
+	Dim Y: Y = Rhino.VectorRotate(X, 90, Z)
+	
+	PlaneFromX = Rhino.PlaneFromFrame(Plane(0), X, Y)
+	'DrawPlaneFrame PlaneFromX, 10
+End Function
+
+Function WhereInArray(item, arr, intCase)
+	'Finds the locaton of a string in an array of strings
+	'if the result is -1 then the item does not
+	'appear in tha array
+	'intCase 0 = Case Sensitve
+
+	Dim sItem, n, i
+	n = False
+	WhereInArray = -1
+
+		
+	For i = 0 To UBound(arr)
+			
+		If intCase = 0 Then
+			If arr(i) = Item Then
+				
+				WhereInArray = i
+				n = True
+				Exit For
+		
+				
+			End If
+			
+		Else 
+			
+			If lCase(arr(i)) = LCase(Item) Then
+				
+				WhereInArray = i
+				n = True
+				Exit For
+	
+			End If
+			
+		End If
+			
+	Next
+	
+
+	If n = False Then WhereInArray = -1
+	
+End Function
+

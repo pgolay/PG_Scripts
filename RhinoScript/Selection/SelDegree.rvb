@@ -1,0 +1,180 @@
+Option Explicit
+Rhino.AddStartUpScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "SelSrfDegree", "_NoEcho _-RunScript (SelSrfDegree)"
+Rhino.AddAlias "SelSrfHighDegree", "_NoEcho _-RunScript (SelSrfHighDegree)"
+Rhino.AddAlias "SelCrvDegree", "_NoEcho _-RunScript (SelCrvDegree)"
+Rhino.AddAlias "SelCrvHighDegree", "_NoEcho _-RunScript (SelCrvHighDegree)"
+
+
+Private OldSrfDeg, oldCrvDeg
+If isEmpty(oldSrfDeg) Then
+	OldSrfDeg = 3
+End If
+
+If isEmpty(oldCrvDeg) Then
+	OldCrvDeg = 3
+End If
+
+'Call SelSrfDegree()
+
+Sub SelCrvDegree()
+	
+	Dim aObj: aObj = Rhino.ObjectsByType(4)
+	Rhino.UnselectAllObjects()
+	If Not isArray(aObj) Then 
+		msgBox "No curves found"
+		Exit Sub
+		
+	End If
+	
+	Dim intDeg: intDeg = Rhino.GetInteger("Select curves of degree", OldCrvDeg, 1, 11)
+	If isnull(intDeg) Then Exit Sub
+	OldCrvDeg = IntDeg
+	
+	
+	Dim temp, sCrv, aDeg(), n
+	n = 0
+	For Each sCrv In aObj
+		temp = Rhino.CurveDegree(sCrv)
+		
+		If temp = intDeg Then
+			ReDim Preserve aDeg(n)
+			aDeg(n) = sCrv
+			n = n + 1
+		End If
+		
+	Next
+	
+	Dim strDeg: strDeg = " curves found that are degree "
+	If n = 1 Then strDeg = " curve found that is degree "
+	
+	If n > 0 Then
+		Rhino.SelectObjects aDeg
+		Rhino.Print n & strDeg & CStr(intDeg) & "."
+	Else
+		Rhino.Print "No curves found that are degree " & CStr(intDeg) & "."
+	End If
+	
+End Sub
+
+
+
+Sub SelCrvHighDegree()
+	
+	Dim aObj: aObj = Rhino.ObjectsByType(4)
+	Rhino.UnselectAllObjects()
+	If Not isArray(aObj) Then 
+		msgBox "No curves found"
+		Exit Sub
+		
+	End If
+	
+	Dim intDeg: intDeg = Rhino.GetInteger("Select curves greater than degree", OldCrvDeg, 1, 11)
+	If isnull(intDeg) Then Exit Sub
+	OldCrvDeg = IntDeg
+	
+	
+	Dim temp, sCrv, aDeg(), n
+	n = 0
+	For Each sCrv In aObj
+		temp = Rhino.CurveDegree(sCrv)
+		
+		If temp > intDeg Then
+			ReDim Preserve aDeg(n)
+			aDeg(n) = sCrv
+			n = n + 1
+		End If
+		
+	Next
+	
+	Dim strDeg: strDeg = " curves found that are higher than degree "
+	If n = 1 Then strDeg = " curve found that is higher than degree "
+	
+	If n > 0 Then
+		Rhino.SelectObjects aDeg
+		Rhino.Print n & strDeg & CStr(intDeg) & "."
+	Else
+		Rhino.Print "No curves found that are degree " & CStr(intDeg) & "."
+	End If
+	
+End Sub
+
+Sub SelSrfDegree()
+	
+	Dim aSrf: aSrf = Rhino.ObjectsByType(8)
+	Rhino.UnselectAllObjects()
+	If Not isArray(aSrf) Then 
+		msgBox "No surfaces found"
+		Exit Sub
+		
+	End If
+	
+	Dim intDeg: intDeg = Rhino.GetInteger("Select surfaces of degree", OldDeg, 1, 11)
+	If isnull(intDeg) Then Exit Sub
+	OldDeg = IntDeg
+	
+	
+	Dim temp, sSrf, aDeg(), n
+	n = 0
+	For Each sSrf In aSrf
+		temp = Rhino.SurfaceDegree(sSrf, 2)
+		
+		If temp(0) = intDeg Or temp(1) = intDeg Then
+			ReDim Preserve aDeg(n)
+			aDeg(n) = sSrf
+			n = n + 1
+		End If
+		
+	Next
+	
+	Dim strDeg: strDeg = " surfaces found that are degree "
+	If n = 1 Then strDeg = " surface found that is degree "
+	
+	If n > 0 Then
+		Rhino.SelectObjects aDeg
+		Rhino.Print n & strDeg & CStr(intDeg) & " in at least one direction."
+	Else
+		Rhino.Print "No surfaces found that are degree " & CStr(intDeg) & " in at least one direction."
+	End If
+	
+End Sub
+
+Sub SelSrfHighDegree()
+	
+	Dim aSrf: aSrf = Rhino.ObjectsByType(8)
+	Rhino.UnselectAllObjects()
+	If Not isArray(aSrf) Then 
+		msgBox "No surfaces found"
+		Exit Sub
+		
+	End If
+	
+	Dim intDeg: intDeg = Rhino.GetInteger("Select surfaces degree or higher", OldDeg, 1, 11)
+	If isnull(intDeg) Then Exit Sub
+	OldDeg = IntDeg
+	
+	
+	Dim temp, sSrf, aDeg(), n
+	n = 0
+	For Each sSrf In aSrf
+		temp = Rhino.SurfaceDegree(sSrf, 2)
+		
+		If temp(0) >= intDeg Or temp(1) >= intDeg Then
+			ReDim Preserve aDeg(n)
+			aDeg(n) = sSrf
+			n = n + 1
+		End If
+		
+	Next
+	
+	Dim strDeg: strDeg = " surfaces found that are degree "
+	If n = 1 Then strDeg = " surface found that is degree "
+	
+	If n > 0 Then
+		Rhino.SelectObjects aDeg
+		Rhino.Print n & strDeg & CStr(intDeg) & " or higher in at least one direction."
+	Else
+		Rhino.Print "No surfaces found that are degree " & CStr(intDeg) & " or higher in at least one direction."
+	End If
+	
+End Sub

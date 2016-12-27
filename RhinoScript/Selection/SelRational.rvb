@@ -1,0 +1,57 @@
+﻿Option Explicit
+'Script written by Pascal
+'Script copyrighted by RMA
+'Script version Thursday, November 01, 2007
+
+Sub SelRationalCurves()
+	Dim sObj
+	
+	Dim aObj: aObj = Rhino.ObjectsByType(4)
+	
+	If isArray(aObj) Then
+		
+		Rhino.EnableRedraw(False)
+		For Each sObj In aObj
+			
+			If Rhino.IsObjectSelectable(sObj) Then
+				
+				If Rhino.IsCurveRational (sObj)Then
+					rhino.SelectObject(sObj)
+				End If
+				
+			End If
+		Next
+		
+		Rhino.EnableRedraw(True)
+	End If
+
+End Sub
+
+
+Sub SelRationalSurfaces()
+	Dim sObj
+	
+	Dim aObj: aObj = Rhino.ObjectsByType(8)
+	
+	If isArray(aObj) Then
+		
+		Rhino.EnableRedraw(False)
+		For Each sObj In aObj
+			If Rhino.IsObjectSelectable(sObj) Then
+				
+				If Rhino.IsSurfaceRational (sObj)Then
+					rhino.SelectObject(sObj)
+				End If
+				
+			End If
+		Next
+		Rhino.EnableRedraw(True)
+	End If
+
+End Sub
+
+
+Rhino.AddAlias "SelRationalSurface", "_NoEcho _-Runscript SelRationalSurfaces"
+Rhino.AddAlias "SelRationalCurve", "_NoEcho _-Runscript SelRationalCurves"
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
