@@ -1,0 +1,8 @@
+﻿Sub AddDataToObjects(aObj, sSection, sEntry, svalue)
+	
+	Dim sObj
+	For Each sObj In aObj
+		Rhino.SetAttributeData sObj, sSection,sEntry,sValue
+	Next
+
+End Sub

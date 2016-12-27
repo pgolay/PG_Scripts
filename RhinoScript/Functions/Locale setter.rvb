@@ -1,0 +1,3 @@
+' set the current locale to en-us / force comma seperator "."
+intLCID = Rhino.LocaleID
+SetLocale("en-us")

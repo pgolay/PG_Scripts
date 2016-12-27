@@ -1,0 +1,12 @@
+﻿
+Function ArcSpanWeight(aPts)
+
+	Dim aAngle: aAngle = Rhino.Angle2(array(aPt(1), aPt(0), array(aPt(1), aPt(2))))
+	Dim Angle: Angle = aAngle(0)
+		
+	Dim weight: weight = sin(angle/2)
+	Dim aWt : aWt = array(1,weight,1)
+		
+	ArcSpanWeight= aWt
+	
+End Function

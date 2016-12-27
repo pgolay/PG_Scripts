@@ -1,0 +1,20 @@
+﻿Function CopyFile(strSource, strTarget)
+ 
+	Dim objFSO
+	CopyFile = False
+ 
+	On Error Resume Next
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+	If Err.Number = 0 Then
+		On Error Resume Next
+		Call objFSO.CopyFile(strSource, strTarget)
+		If Err.Number = 0 Then
+			If objFSO.FileExists(strTarget) Then
+				CopyFile = True
+			End If
+		End If
+	End If
+ 
+End Function
+ 
+MsgBox CopyFile("c:\test.txt", "c:\dale.zzz")

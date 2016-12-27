@@ -1,0 +1,15 @@
+﻿'\\\\\\\\\\\\\\\\\\\\\\\\\
+'/////////////////////////
+
+Function FileExists (strFile)
+
+   Dim fso, msg, Result
+   result = False
+   Set fso = CreateObject("Scripting.FileSystemObject")
+   If (fso.FileExists(strFile)) Then
+     Result = True
+   End If
+
+   FileExists = Result
+
+End Function

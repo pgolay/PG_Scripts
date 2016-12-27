@@ -1,0 +1,155 @@
+﻿Option Explicit
+'Script written by Pascal
+'Thursday, November 06, 2008 
+
+Sub AutoTrace()
+
+	Dim aCrv: aCrv = Rhino.GetCurveObject("Select curve near end to start")
+	If Not IsArray(aCrv) Then Exit Sub
+
+	Dim sCrv: sCrv = aCrv(0)
+	Dim CrvEnd: CrvEnd = GetCrvEnd(sCrv, aCrv(4))
+
+	If CrvEnd = 1 Then Rhino.ReverseCurve(sCrv)
+
+	Dim aDom: aDom = Rhino.CurveDomain(sCrv) 
+	
+	Dim aInfo
+	Dim aStart: aStart = Rhino.CurveStartPoint(sCrv)
+	Dim sStart: sStart = Rhino.Pt2Str(aStart,,True)
+
+
+	
+	Dim aTan, sEnd, aEnd
+	Dim sTan
+	Dim aDiv: aDiv = Rhino.DivideCurveLength(sCrv,2.0)
+	Dim i , dist, n, Bound, sArc, temp, aArcs(),aDone(), p, q, aArc
+	n = 0
+	Dist = .25
+	p = 0
+	'aDiv = Rhino.JoinArrays(array(aStart), aDiv)
+	Bound = Ubound(aDiv)
+	
+	For i = n To Bound
+		
+		sStart = Rhino.Pt2Str(aDiv(i),,True)
+		If i = 0 Then
+			aInfo = Rhino.CurveEvaluate(sCrv, Rhino.CurveClosestPoint(sCrv, aDiv(i)), 1)
+		Else
+			aInfo = Rhino.CurveEvaluate(aDone(q-1), Rhino.CurveClosestPoint(aDone(q-1), aDiv(i)), 1)
+		End If
+		aTan = Rhino.PointAdd(aDiv(i), aInfo(1))
+		sTan = Rhino.Pt2Str(aTan,,True)
+		aEnd = aDiv(i+1)
+		sEnd = Rhino.Pt2Str(aDiv(i+1))
+		
+		'Build the arc in RhinoScript: line Tan direction, line perp from mid point of line to the next point. 
+		'INtersect these lines for the middle point location, find the point weight for the middle point.
+		'	Dim str: str = "Arc Start " & sStart & " _Direction _TanFrom _SelID " & sCrv &" " & sStart & sTan & sEnd '& '" _Enter"
+		'	Rhino.Print str
+		'	Rhino.Command Str
+		
+		'Dim X :X = Rhino.LastCommandResult
+		
+		'	If Rhino.LastCommandResult = 0 Then
+		'	aArc = Rhino.LastCreatedObjects
+		'sArc = aArc(0)
+		
+		sArc = arcFromPtsDir(aStart,aTan, aEnd)
+		ReDim Preserve aArcs(p)
+			aArcs(p) = sArc
+			p = p + 1
+			'	End If
+		
+		If  Not isNull(sArc) Then 
+			temp = Rhino.CurveDeviation(sArc,sCrv)
+			If temp(2) > Dist Then
+				'	Rhino.DeleteObject sArc
+				ReDim Preserve aDone(q)
+				aDone(q) = aArcs(p-1)
+				q = q +1
+				ReDim aArcs(p-2)
+				'	Rhino.DeleteObjects aArcs
+				p = 0
+				n = Bound-i-1
+				sStart = Rhino.Pt2Str(aDiv(i-1), , True)
+			End If
+		End If
+		
+		'	Rhino.Print str
+	
+	Next
+	
+	If CrvEnd = 1 Then Rhino.ReverseCurve(sCrv)
+
+End Sub
+
+Function arcFromPtsDir(apt1,aptDir, aPt2)
+
+	Dim Line1 : Line1 = array(aPt1, aPtDir)
+	Dim Vec1 : Vec1 = Rhino.VectorCreate(aPt1, aPt2)
+	Dim aMid: aMid = AveragePoints(array(aPt1, aPt2))
+	Dim Line2: Line2 = array(aMid, Rhino.PointAdd(aMid, Rhino.VectorRotate(Vec1,90,Rhino.ViewCPlane()(3))))
+	Dim ArcPt2: arcpt2 = Rhino.LineLineIntersection(Line1,Line2)
+	Dim aPts: aPts = array(aPt1,Arcpt2, aPt2)
+	Dim Weight: Weight = ArcSpanWeight(aPts)
+	
+	arcFromPtsDir = Rhino.AddNurbsCurve(apts,array(0,0,1,1),2,array(1,weight,1))
+	
+End Function
+
+Function ArcSpanWeight(aPts)
+	
+	Dim aAngle: aAngle = Rhino.Angle2(array(aPts(1), aPts(0), array(aPts(1), aPts(2))))
+	Dim Angle: Angle = aAngle(0)
+		
+	Dim weight: weight = sin(angle/2)
+	Dim aWt : aWt = array(1,weight,1)
+		
+	ArcSpanWeight= aWt
+	
+End Function
+
+Function AveragePoints(arrPts)
+	'Finds the average location of an array
+	'of points.
+
+	Dim X, Y, Z
+	Dim i
+	
+	X = 0
+	Y = 0
+	Z = 0
+
+	For i=0 To UBound (arrPts)
+			
+		'add all the X values
+		X = X+arrPts(i)(0)
+	
+		'add all th Y values
+		Y = Y+arrPts(i)(1)			
+	
+		'add all the Z values
+		Z = Z+arrpts(i)(2)
+	Next
+	
+	'Divide by the number of points to
+	'get the average  for each
+	'create the output array from the 3 averages
+	AveragePoints  =array(X/(UBound(arrPts)+1), Y/(UBound(arrPts)+1), Z/(UBound(arrPts)+1))
+
+End Function
+
+Function GetCrvEnd(crv, t)
+	
+	Dim Dom: dom = Rhino.CurveDomain(crv)
+	If Abs(t-dom(0)) > Abs(t-dom(1)) Then
+		GetCrvEnd = 1
+	Else
+		GetCrvEnd = 0
+	End If
+	
+End Function
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "AutoTrace","_NoEcho _-Runscript (AutoTrace)"

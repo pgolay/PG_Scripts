@@ -1,0 +1,27 @@
+﻿Function GetRenderCommandLineName(strRender)
+	Dim result
+	
+
+	If Left(strRender, 8)  = "Flamingo" Then
+		result = "Flamingo"
+			
+			
+	ElseIf strRender = "Rhino Render" Then
+		result = "RhinoRender"
+			
+				
+	ElseIf left(strRender,7) = "Penguin" Then
+		result = "Penguin"
+			
+			
+	ElseIf strRender = "Toucan Render" Then
+		result = "Toucan"
+		
+	ElseIf strRender = "V-Ray for Rhino" Then
+		result = "Render"
+		
+			
+	End If
+
+	GetRenderCommandLineName = result
+End Function

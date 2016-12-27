@@ -1,0 +1,12 @@
+
+'//////////////////////////////
+'//////////////////////////////
+
+Function SumArray(arr)
+  Dim item
+ Sum=0
+ For Each item In arr
+  sum= sum + item
+  Next
+ SumArray = sum
+End Function

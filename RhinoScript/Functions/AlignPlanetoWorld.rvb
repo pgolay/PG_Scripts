@@ -1,0 +1,101 @@
+﻿Function AlignPlaneToWorld( aPlane)
+	'changes a plane so that the + axes are
+	'most like the world plane
+	
+	Dim aVec(5), aWVec(2)
+	
+	aWVec(0) = array(1,0,0)
+	aWVec(1) = array(0,1,0)
+	aWVec(2) = array(0,0,1)
+	
+	aVec(0) = aPlane(1)
+	aVec(1) = aPlane(2)
+	aVec(2) = aPLane(3)
+	aVec(3) = Rhino.VectorReverse(aPlane(1))
+	aVec(4) = Rhino.VectorReverse(aPlane(2))
+	aVec(5) = Rhino.VectorReverse(aPlane(3))
+	
+	Dim i, ang, temp, idx, vecX, VecY, VecZ
+	
+	For i = 0 To 5
+		If i = 0 Then
+			
+			Ang = VectorAngle(aVec(0),aWVec(0))
+			idx = 0
+		
+		Else
+			Temp = VectorAngle(aVec(i),aWVec(0))
+			If temp < Ang Then 
+				ang = Temp
+				idx = i
+			
+			End If
+		
+		End If
+		
+	Next
+	VecX = aVec(idx)
+	
+	'	DrawVector VecX, aPlane(0), 200
+	
+	For i = 0 To 5
+		If i = 0 Then
+			
+			Ang = VectorAngle(aVec(0),aWVec(1))
+			idx = 0
+		
+		Else
+			Temp = VectorAngle(aVec(i),aWVec(1))
+			If temp < Ang Then 
+				ang = Temp
+				idx = i
+			
+			End If
+		
+		End If
+		
+	Next
+	VecY = aVec(idx)
+	'	DrawVector VecY, aPlane(0), 200
+	
+	For i = 0 To 5
+		If i = 0 Then
+			
+			Ang = VectorAngle(aVec(i),aWVec(2))
+			idx = 0
+		
+		Else
+			Temp = VectorAngle(aVec(i),aWVec(2))
+		
+			If temp < Ang Then 
+				ang = Temp
+				idx = i
+			
+			End If
+		
+		End If
+		
+	Next
+	VecZ = aVec(idx)
+	'	DrawVector VecZ, aPlane(0), 200
+	
+	Dim tempPlane : tempPlane = array(aPLane(0), vecX,VecY,VecZ)
+	
+	'DrawPlaneFrame tempPlane, 200
+	AlignPlaneToWorld = tempPlane
+	
+End Function
+
+Function VectorAngle(vec1, vec2)
+	
+	Dim test1, test2
+	
+	test1 = Rhino.VectorUnitize(Vec1)
+	test2 = Rhino.VectorUnitize(Vec2)
+
+	Dim DblDot : dblDot = Rhino.VectorDotProduct(Test1, Test2)
+	Dim dblAngle : dblAngle = Rhino.aCos(dblDot)
+
+	VectorAngle = Rhino.ToDegrees(dblAngle)
+	
+End Function

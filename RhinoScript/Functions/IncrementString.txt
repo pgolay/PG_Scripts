@@ -1,0 +1,35 @@
+
+'\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+'/////////////////////////////
+'Incremrnt a string with a 3 digit number
+
+Function IncrementName(strName)
+  Dim name, num, last3, last4, length, str
+  Dim Zeros, incr
+  Last3 = Right(strName, 3)
+  Last4= Right(strName, 4)
+  Length = Len(Last3)
+
+'  Rhino.Print Last3'Test
+  If IsNumeric(Last3) Then
+    If Not IsNumeric(Last4) Then
+      Num = CInt(Last3) + 1
+'      Rhino.Print "num = " &num'Test
+      Zeros = String(3-Len(Num),"0")
+'      Rhino.Print "Zeros = " &Zeros'Test
+      incr = Zeros & Num
+      str = Replace(strName,Last3,incr)
+      Else
+      str = strname &" _001"
+    End If
+    Else
+    str = strName &" _001"
+    If Rhino.isLayer (str) Then
+      str =IncrementName(str)
+    End If
+   End If
+   IncrementName= str
+
+End Function
+'\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+'/////////////////////////////

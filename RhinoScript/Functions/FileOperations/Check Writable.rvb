@@ -1,0 +1,15 @@
+Function IsPathWriteable(Path)' As Boolean
+	Dim fso 'As Scripting.FileSystemObject
+	Dim Temp_Path 'As String
+    
+	Set fso = CreateObject("Scripting.FileSystemObject")
+    
+	Temp_Path = Path & "\" & fso.GetTempName() & ".tmp"
+    
+	On Error Resume Next
+	fso.CreateTextFile Temp_Path
+	IsPathWriteable = Err.Number = 0
+	fso.DeleteFile Temp_Path
+	On Error Goto 0
+    
+End Function

@@ -1,0 +1,8 @@
+﻿Sub AddArrayDots(aPts)
+
+	Dim i 
+	For i = 0 To Ubound(aPts)
+		Rhino.AddTextDot i, aPts(i)
+	Next
+	
+End Sub

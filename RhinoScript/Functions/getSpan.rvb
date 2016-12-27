@@ -1,0 +1,6 @@
+﻿Function GetSpan(aNum)
+	'Get the span between two numbers
+	
+	GetSpan = aNum(0) + (aNum(1)- aNum(0))
+
+End Function

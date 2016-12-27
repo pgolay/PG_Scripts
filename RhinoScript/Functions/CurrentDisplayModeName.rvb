@@ -1,0 +1,27 @@
+﻿
+
+Function CurrentDisplayModeName
+	
+	Rhino.Command "_SetDisplayMode !"
+	Dim Str: Str = CommandHistory
+	
+	If isNull(str) Then Exit Function
+	
+	Dim LenStr: LenStr = Len(BigStr)
+	Dim intLeft: intLeft = instrRev(BigStr,"=")
+	Dim intRight: intRight = LenStr-IntLeft
+	
+	Str = Right(BigStr,intRight)
+	
+	If Not isNull(Str) Then
+		intLeft = instr(BigStr," ")
+		If Not isNull(intLeft) Then
+			Str = Left(BigStr, IntLeft) & " _Enter"
+		Else Exit Function
+		End If
+	Else Exit Function
+	End If
+	
+	CurrentDisplayModeName = Str
+	
+End Function

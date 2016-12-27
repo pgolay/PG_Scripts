@@ -1,0 +1,49 @@
+﻿Sub CustomIntersect
+  
+ 'intersects multiple objects with an object but not with each other
+  
+	Dim  sObj, sobj2, Result
+  
+	Dim arrObj:arrObj = Rhino.getObjects("Select first set of objects for intersectons", 4+8+16,, True)
+  
+	If Not IsArray (arrObj) Then Exit Sub
+	
+	Dim aObj2:aObj2 = Rhino.GetObjects("Select first set of objects for intersectons", 4+8+16,True)
+	If Not IsArray (aObj2) Then Exit Sub
+	
+    
+	Dim a: a = 0
+  
+
+    Rhino.EnableRedraw (False)
+	For Each strObj In arrObj
+		For Each sObj2 In aObj2
+        Rhino.UnselectAllObjects
+        Rhino.SelectObject strObj
+			Rhino.SelectObject sObj2
+        Rhino.Command "Intersect"
+        
+        If Rhino.LastCommandResult = 0 Then
+          Rhino.Command "SelNone"
+          Rhino.Command "SelLast"
+          arrSel = Rhino.SelectedObjects
+          If a > 0 Then
+            Result = Rhino.JoinArrays(Result, arrSel)
+            Else Result = arrSel
+          End If
+        End If
+        
+        a = a+1
+		Next
+	Next
+    Rhino.EnableRedraw (True)
+   Else Exit Sub
+  End If
+   
+   
+ Rhino.UnselectAllObjects
+ Rhino.SelectObjects Result
+ 
+  End Sub
+  
+CustomIntersect

@@ -1,0 +1,74 @@
+﻿'makes a mesh from a surface and an ordered list of surface parameter arrays, and a division number.
+'Set up to add a random vertex color per mesh
+
+
+Function CreateUVMesh(sSrf,aParams,intDiv)
+	
+	Dim Bound: Bound = Ubound(aParams)
+	Dim NewDiv: newDiv= intDiv+1
+	Dim aVerts, aFVerts, aTemp(), i,k
+	
+	ReDim aVerts(Bound)
+	
+	For i = 0 To bound
+		aVerts(i) = Rhino.EvaluateSurface(sSrf,aParams(i))
+	Next
+	
+	k = 0
+	
+	For i = 0 To bound-(newdiv)
+		
+		If k < IntDiv Then
+			ReDim Preserve aTemp(i)
+			aTemp(i) = array(i,i+1,i+NewDiv+1,i+NewDiv)
+			k = k + 1
+		Else
+			k = 0
+			
+		End If
+		
+	Next
+	
+	aFVerts = CullEmptyElements(aTemp)
+	
+	Dim Color: Color = RandomColor '(function is elsewhere in this script- relly for testing only)
+	Dim aVertColor
+	ReDim aVertColor(Bound)
+	
+	For i = 0 To bound
+		aVertColor(i) = color
+		
+	Next
+	
+	CreateUVMesh = 	Rhino.AddMesh (aVerts,aFVerts,,,aVertColor)
+	
+End Function
+
+Function CullEmptyElements(arr)
+	
+	Dim aResult(), i, n
+	n = 0
+	
+	For i = 0 To ubound(arr)
+		If Not isEmpty(arr(i)) Then 
+			ReDim Preserve aresult(n)
+			aResult(n) = arr(i)
+			n = n + 1
+		End If
+	Next
+	
+	CullEmptyElements = aResult
+
+End Function
+
+Function RandomColor()
+
+	'Used for testing
+	Dim intRed, intGreen, intBlue, ColorOut
+	
+	intRed = 255*Rnd
+	intGreen = 255*Rnd
+	intBlue = 255*Rnd 
+	RandomColor =  RGB(intRed,IntGreen,intBlue)  
+	
+End Function

@@ -1,0 +1,25 @@
+'Rhino.OpenFileName for example
+Function GetBaseFileName(sFile)
+
+	Dim intFile,lenFile, temp
+	
+	intFile = InstrRev(sFile, "\")
+	lenFile = len(sFile)
+	temp = Right(sfile, lenFile - intFile)
+	intFile = instr(temp, ".")
+	lenFile = len(temp)
+	
+	GetBaseFilename = Left(temp, intFile - 1)
+
+End Function
+
+Function FolderPath(sFile)
+
+	Dim intFile,lenFile, temp
+	
+	intFile = InStrRev(sFile, "\")
+	lenFile = len(sFile)
+	temp = Left(sfile, intFile)
+	FolderPath = temp
+	
+End Function

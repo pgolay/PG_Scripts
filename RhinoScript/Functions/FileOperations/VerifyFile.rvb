@@ -1,0 +1,18 @@
+﻿Function VerifyFile(strFile)
+ 
+	Dim objFSO
+	VerifyFile = False
+ 
+	On Error Resume Next
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+	If Err.Number = 0 Then
+		On Error Resume Next
+		If objFSO.FileExists(strFile) Then
+			VerifyFile = True
+		End If
+	End If
+	
+ 
+End Function
+ 
+MsgBox VerifyFile(strFile)

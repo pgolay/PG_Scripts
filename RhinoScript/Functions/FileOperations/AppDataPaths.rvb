@@ -1,0 +1,28 @@
+﻿
+
+Function AppDataPath()
+	
+	'returns the path to C:\Users\UserName\AppData
+	dim oShell
+	
+	Set OShell = CreateObject("WScript.Shell")
+	AppDataPath = OShell.ExpandEnvironmentStrings("%USERPROFILE%")
+
+	Set oShell = Nothing
+	
+End Function
+
+
+
+
+
+Function RoamingPath()
+	
+	'returns the path to C:\Users\UserName\AppData\Roaming
+	dim oShell
+
+	Set oShell = CreateObject("WScript.Shell")
+	RoamingPath = oShell.ExpandEnvironmentStrings("%APPDATA%")
+	Set oShell = Nothing
+	
+End Function

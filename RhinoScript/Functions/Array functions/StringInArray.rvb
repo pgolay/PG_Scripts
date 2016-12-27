@@ -1,0 +1,32 @@
+﻿Function StringInArray(item, arr, intCase)
+	'Non case-sensitive= 0, case-sensitive = 1
+	'returns -1 if the string does not appear in the array
+	'else it returns the position of the string in the array
+
+	Dim intMax: intMax = Ubound(arr)
+	
+	Dim result :  Result = -1
+	Dim n
+	
+		
+	If intCase = 0 Then
+		For n = 0 To uBound(arr) 
+			If LCase(arr(n)) = LCase(Item) Then
+				Result = n
+				Exit For
+			End If
+		Next
+	Else
+		For n = 0 To uBound(arr) 
+			If arr(n) = Item Then
+				Result = n
+				Exit For
+			End If
+		Next	
+	End If
+		
+
+	
+	StringInArray = Result
+	
+End Function

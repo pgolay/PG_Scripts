@@ -1,0 +1,32 @@
+﻿
+'\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+'/////////////////////////////
+'Subtract the contents of one array from another
+' arr1-arr2 is the result
+
+Sub SubtractArray(ByRef arr1, arr2)
+
+	Dim g, h, j, arrTemp()
+	j = 0
+	Dim aTest: atest = arr1
+	
+	For g = 0 To UBound(arr2)
+		j = 0
+		For h = 0 To UBound(aTest)
+			If arr2(g) <> aTest(h) Then
+				ReDim Preserve arrtemp(j)
+				arrTemp(j) = aTest(h)
+				j = j + 1
+			End If
+		Next
+		
+		aTest = arrTemp
+		
+	Next
+	
+	arr1 =  arrTemp
+
+End Sub
+
+'\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+'/////////////////////////////

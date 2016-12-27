@@ -1,0 +1,11 @@
+﻿Function GetPointCoords(aPts)
+	
+	Dim sPt, n
+	For Each sPt In aPts
+		ReDim Preserve aCoords(n)
+		aCoords(n) = Rhino.PointCoordinates(sPt)
+		n = n +1
+	Next
+	getPointCoords = aCoords
+	
+End Function

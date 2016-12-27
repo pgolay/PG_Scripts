@@ -1,0 +1,21 @@
+﻿
+'intersect two arrays of strings
+Function IntersectArrays(arr1, arr2)
+	
+	Dim result(), n
+	n = 0
+	Dim item1, item2
+	For Each item1 In arr1
+		For Each item2 In arr2
+			If item1 = item2 Then
+				ReDim Preserve result(n)
+				result(n) = item1
+				n = n + 1
+			End If
+			
+		Next
+	Next
+	
+	If n > 0 Then IntersectArrays = Rhino.CullDuplicateStrings(result)
+	
+End Function

@@ -1,0 +1,6 @@
+﻿Function ConvertVolUnits(Vol, UnitsIn, UnitsOut)
+
+	Dim Factor: Factor = Rhino.UnitScale (UnitsIn , UnitsOut)
+	ConvertVolUnits = ((Vol^.333333333334) * (1/Factor))^3
+	
+End Function

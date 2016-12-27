@@ -1,0 +1,30 @@
+﻿Function GetFileList(sDir,aExt)
+	
+	Dim fso, f, f1, fc, s
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	Set f = fso.GetFolder(sDir)
+	Set fc = f.Files
+	Dim aResult(), n
+	n = 0
+	Dim X, L
+	
+	Dim sExt
+	For Each sExt In aExt
+		L = Len(sExt)
+		For Each f1 In fc
+			X= f1.Name
+			Rhino.Print X
+			If lcase(right(X,L)) = lcase(sExt) Then
+				ReDim Preserve aResult(n)
+
+				aresult(n) = X
+				n = n + 1
+			End If
+		Next
+	Next
+	
+	GetFileList = aResult
+	
+	Set fso = Nothing
+
+End Function

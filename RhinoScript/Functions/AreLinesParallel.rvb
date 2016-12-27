@@ -1,0 +1,20 @@
+﻿Function AreLinesparallel(sLine1,sLine2)
+	
+	Dim X: X = True
+	Dim aStart1: astart1 = Rhino.CurveStartPoint(sLine1)
+	Dim aStart2: aStart2 = Rhino.CurveStartPoint(sLine2)
+
+	
+	Dim aEnd1: aEnd1 = Rhino.CurveEndPoint(sLine1)
+	Dim aEnd2: aEnd2 = Rhino.CurveEndPoint(sLine2)
+	
+	Dim vec1: Vec1 = Rhino.vectorCreate(aStart1, aEnd1)
+	Dim vec2: Vec2 = Rhino.vectorCreate(aStart2, aEnd2)
+	
+	If Rhino.IsVectorParallelTo(Vec1, vec2) = 0 Then
+		X = False
+	End If
+	
+	AreLinesparallel = X
+	
+End Function

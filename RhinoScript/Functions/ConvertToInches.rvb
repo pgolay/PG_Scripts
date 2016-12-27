@@ -1,0 +1,76 @@
+﻿Function ConvertUnitsToInch(dblSize, intUnits)
+	
+	'converts numbers to inches, depending upon
+	'the unit type (intUnits) from Rhino.UnitSystem
+	
+	Dim result, temp
+	'	0
+	'	No unit system 
+	If intUnits = 0 Then 
+		result = dblSize
+		
+		'	1
+		'	Microns (1.0e-6 meters)
+	ElseIf intUnits = 1 Then
+		
+		temp =3.936996e-005
+
+		'	2
+		'	Millimeters (1.0e-3 meters)
+	ElseIf intUnits = 2 Then
+
+		temp = 0.03936996
+
+		'	3
+		'	Centimeters (1.0e-2 meters)
+	ElseIf intUNits = 3 Then
+		
+		temp = 0.3936996
+	
+		'	4
+		'	Meters
+	ElseIf IntUnits = 4 Then
+		
+		temp = 39.36996
+
+		'	5
+		'	Kilometers (1.0e+3 meters)
+	ElseIf intUnits = 5 Then
+		
+		temp = 39379.96
+	
+		'	6
+		'	Microinches (1.0e-6 inches)
+		
+	ElseIf intUnits = 6 Then
+		
+		temp = .000001		
+		'	7
+		'	Mils (1.0e-3 inches)
+
+	ElseIf	intUnits = 7 Then
+		
+		temp = .001
+	
+		'	8
+		'	Inches (0.0254 meters)
+	ElseIf intUnits = 8 Then
+		temp = 1
+	
+		'	9
+		'	Feet (12 inches)
+	ElseIf intUnits = 9 Then
+		
+		temp = 1/12
+	
+		'	10
+		'	Miles (63,360 inches)
+ 
+	ElseIf intUnits = 10 Then
+		
+		temp = 63360
+	End If
+	result = temp*dblSize
+	
+	ConvertUnits = Result
+End Function

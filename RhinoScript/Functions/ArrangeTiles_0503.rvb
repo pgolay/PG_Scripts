@@ -1,0 +1,865 @@
+﻿Option Explicit
+'Script written by Pascal
+'RMA
+'Script version Tuesday, February 12, 2008
+
+Private dblOldX, dblOldY, aOldOrigin, dblOldSpacing
+Private oldBlnPt,dblOldGap, blnOldRotate, dblOldOffset
+
+If isEmpty(dblOldX) Then
+	dblOldX = 100
+End If
+
+If isEmpty(dblOldY) Then
+	dblOldY = 100
+End If
+
+If IsEmpty(aOldOrigin) Then
+	aOldOrigin = array(0,0,0)
+End If
+
+If IsEmpty(dblOldSpacing) Then
+	dblOldSpacing = 1
+End If
+
+If IsEmpty(OldblnPt) Then
+	oldBlnPt = "No"
+End If
+
+If IsEmpty(dblOldgap) Then
+	dblOldGap  = 0.1
+End If
+
+
+If IsEmpty(blnOldRotate) Then
+	blnOldRotate = "No"
+End If
+
+If IsEmpty(dblOldOffset) Then
+	dblOldOffset = 1 
+End If
+'Call Main()
+
+Sub ArrangeTiles
+	
+	Dim aCrvs :aCrvs = Rhino.GetObjects("Select curves",4,True,True)
+	If Not isArray(aCrvs) Then Exit Sub
+	
+	Dim BlnRotate: blnRotate = Rhino.GetString("Auto-rotate curves to X Axis?",BlnOldRotate,array("Yes", "No"))
+	
+	If Not Ucase(blnRotate) = "YES" And Not Ucase(blnRotate) = "NO" Then Exit Sub
+	
+	BlnOldRotate = BlnRotate
+
+	Dim sCrv
+	
+	Rhino.EnableRedraw(False)
+	
+	If UCase(BlnRotate)= "YES" Then
+		Rhino.Print "Please wait while the sctript orients the curves."
+		For Each sCrv In ACrvs
+			RotateToY sCrv
+		Next
+	End If
+	
+	Dim BlnPt: BlnPt = Rhino.GetString("Add points?",OldBlnPt,array("Yes", "No"))
+
+	If Not Ucase(blnPt) = "YES" And Not UCase(blnPt) = "NO" Then
+		Exit Sub
+	Else OldBlnPt = BlnPt
+	End If
+	
+	'	Rhino.EnableRedraw(True)'TEST
+	
+	
+	'Dim temp: temp = SortByHeight(aCrvs)
+	'	aCrvs = temp
+	
+
+	RackUpCurves aCrvs, blnPt
+	
+
+	Rhino.EnableRedraw(True)
+	
+End Sub
+
+
+Rhino.AddAlias "ArrangeTiles", "_noEcho _-Runscript ArrangeTiles"
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+
+Sub RackUpCurves(aCrvs, blnPt)
+	Rhino.EnableRedraw(True)
+	
+	Dim aOrigin: aOrigin = Rhino.GetPoint("Lower left corner of part envelope.", array(0,0,0))
+	
+	If Not isArray(aOrigin) Then 
+		Exit Sub
+	Else  aOldOrigin = aOrigin
+	End If
+	
+	Rhino.Command "_NoEcho", False
+	
+	Dim aItems: aItems = array("Envelope width", "Envelope height", "Minimum clearance", "Toolpath gap size", "CurveOffset")
+	Dim aValues: aValues = array(dblOldX, dblOldY,dblOldSpacing,dblOldGap, dblOldOffset)
+	Dim aInputs: aInputs = Rhino.PropertyListBox (aItems,aValues,"Set input values", "Tile path inputs")
+	Dim aNodes(), b'array and counter for the polyline/curve node points
+	b = 0
+	If isArray(aInputs) Then
+		Dim dblX: dblX = CDbl(aInputs(0)) 
+		
+		'the x dimension of the work envelope
+		If Not isNumeric(dblX) Then 
+			Exit Sub
+		Else dblOldX = dblX
+		End If
+		
+		Dim dblY:  dblY = CDbl(aInputs(1))
+	
+		'the y dimension of the work envelope
+		If Not isNumeric(dblY) Then 
+			Exit Sub
+		Else dblOldY = dblY
+		End If
+	
+		'spacing between tiles
+		Dim Spacing:Spacing = CDbl(aInputs(2))
+		
+		If IsNumeric(Spacing) Then 
+			dblOldSpacing = Spacing
+		Else Exit Sub
+		End If
+	
+		'the gap where the tile hits the polyline
+		Dim dblGap: dblGap = CDbl(aInputs(3))
+		
+		If IsNumeric(dblGap) Then 
+			dblOldGap = dblGap
+		Else Exit Sub
+		End If
+		
+		Dim dblOffset: dblOffset = CDbl(aInputs(4))
+		
+		If IsNumeric(dblOffset) Then 
+			dblOldOffset = dblOffset
+		Else Exit Sub
+		End If
+		
+	Else Exit Sub
+	End If
+	Rhino.Print "Please wait."
+	
+	Dim atemp
+	
+	Dim aCrvsBB: aCrvsBB = Rhino.BoundingBox(aCrvs)
+	
+	Dim OffsetPt: OffsetPt = array(aCrvsBB(0)(0)-100,aCrvsBB(0)(1), aCrvsBB(0)(2))
+
+	Dim aOffsets(),i
+
+	
+	'offset the curves or copy them in place if the
+	'offset is zero. Reset the array of curves to the
+	'offsets or copies:
+	
+	If dblOffset <> 0 Then
+		For i = 0 To ubound(aCrvs)
+			ReDim Preserve aOffsets(i)
+			aTemp = Rhino.OffsetCurve(aCrvs(i),OffsetPt,dblOffset,,2)
+			aOffsets(i) = atemp(0)
+		Next
+	Else
+		For i = 0 To uBound(aCrvs)
+		ReDim Preserve aOffsets(i)
+		aOffsets(i) =  Rhino.CopyObject(aCrvs(i))
+		Next
+	End If
+		
+	aCrvs = aOffsets
+	
+	
+	
+	Rhino.EnableRedraw(False)
+	
+	Dim sCrv,  n, dblDist, p, yNum, yDist 
+	Dim sLine 'temp line to intersect with the curves. Runs along the Y value for the base of
+	'the current row.
+	Dim aInt 'intersection of the tile curve and sLine
+	Dim tempCrv,  temp2
+	Dim aBBRow, aRow, d, temp(), aTarg, r
+	
+	
+	dblDist = 0 'the current length of the row
+	yDist = 0
+	
+	n = 0 'counter, total number
+	p = 0 'counter, number in row
+	
+	Dim Even: Even = False ' even or odd number of rows
+	Dim yVal: yVal = 0 ' the base line for the current row
+	Dim num
+	Dim aPtObj(), h
+	h = 0
+	Dim apath()
+	ReDim Preserve apath(0)
+	aPath(0) = array(dblX, 0,0)
+	Dim q: q = 1
+	Dim aMoved(), f
+	f = 0
+	
+	For Each sCrv In aCrvs
+	
+
+		Dim aLowPt: aLowPt = GetLowPt(sCrv)
+		
+		'move the curve from its current low point in Y 
+		'to the correct Y for the row.
+		Rhino.MoveObject sCrv, aLowPt,Array(aLowPt(0),yVal,0)
+		
+		'get the curve's bounding box
+		Dim aBB:aBB = Rhino.BoundingBox(sCrv)
+		
+		'the current curve's base and top point for the script
+		Dim aBase:aBase = aBB(0)
+		Dim aTop: aTop = aBB(3)
+		
+		
+		
+		'********************
+		'********************
+		
+		'if the next part is too large to fit in the current row,
+		'or it is the last piece overall, handle it...
+
+		'********************
+		'********************
+		
+		If dblDist + spacing + (Rhino.Distance (aBB(0), aBB(1))) > dblX _
+			Or n = Ubound(aCrvs) Then
+			
+			'			If n = Ubound(aCrvs) Then 'TEST
+			'				msgbox "last one"
+			'			End If
+			
+			'check if the row is an even or odd number
+			
+			If Even = True Then
+				Even = False
+			Else Even = True
+			End If
+				
+			'restart the counter
+			'If dblDist + spacing + (Rhino.Distance (aBB(0), aBB(1))) > dblX _
+			'And n<Ubound(aCrvs) Then
+			r = 0
+			'	End If
+			'Find the curves in the row so far (temp()).
+			
+			For d = n - p To n - 1 'n is the total # of curves, p = number in row so far
+				ReDim Preserve temp(r)
+				temp(r) = aCrvs(d)
+				r = r + 1
+			Next
+			
+			If n = Ubound(aCrvs) Then
+				MoveToRow sCrv, n, aCrvs, yDist, aBase, Spacing
+				ReDim Preserve temp(r)
+				temp(r) = sCrv
+				r = r + 1
+			End If
+			p = 0
+			
+			If Even = True Then
+				ReverseArray temp
+			End If
+			
+			'Get the bounding box of the current row
+			aBBRow = Rhino.BoundingBox(temp)
+			
+			If aBBRow(2)(1) > dblY Then
+				ReDim Preserve aPath(q)
+				aPath(q) = array(dblx, dbly,0)
+				Rhino.MoveObjects temp, aBBRow(0),array(aOrigin(0)+ dblX , aOrigin(1),0)'HERE
+				
+				Exit For
+			End If
+			
+			'Rhino.addPolyline array(aBBRow(0),aBBRow(1),aBBRow(2),aBBRow(3))
+			'Msgbox Even
+			
+			If Even = True Then
+				
+				ReDim Preserve aPath(q)
+				aPath(q) = aBBRow(1)
+				q = q + 1
+			
+			Else
+				
+				ReDim Preserve aPath(q)
+				aPath(q) = aBBRow(0)
+				q = q + 1
+				
+			End If
+				
+			sLine = Rhino.AddLine (aBBRow(0), aBBRow(1))
+			
+			For Each tempCrv In temp
+				
+				aInt = Rhino.CurveCurveIntersection(tempCrv,sLine)
+				aTemp = FindRightMostInt(aInt)
+				ReDim Preserve apath(q)
+				aPath(q) = atemp
+				ReDim Preserve aNodes(b)
+				aNodes(b) = atemp
+				b = b +1
+				
+				If UBound(aTemp) = 2 Then
+					
+					If UCase(BlnPt) = "YES" Then
+						ReDim Preserve aPtObj(h)
+						aPtObj(h) = Rhino.AddPoint (atemp)
+						h = h + 1
+					End If
+					
+				End If
+				
+				q = q + 1
+				
+			Next
+			
+			If Even = True Then
+				
+				ReDim Preserve aPath(q)
+				aPath(q) = aBBRow(0)
+				q = q + 1
+			
+				If n < Ubound(aCrvs) Then
+					
+					ReDim Preserve aPath(q)
+					aPath(q) = aBBRow(3)
+					q = q + 1
+					
+				End If
+				
+			Else
+				
+				ReDim Preserve aPath(q)
+				aPath(q) = aBBRow(1)
+				q = q + 1
+			
+				If n < Ubound(aCrvs)-1 Then
+					
+					ReDim Preserve aPath(q)
+					aPath(q) = aBBRow(2)
+					q = q + 1
+					
+				End If
+				
+			End If
+			
+			Rhino.DeleteObject sLine
+			'Get the height of the row, add Spacing to the height
+			'to get the absolute base line height for the next row
+			
+			If n < Ubound(aCrvs) Then
+				yDist = aBBRow(3)(1) + Spacing
+				'reset the X distance to zero
+				dblDist = 0
+			End If
+			
+
+		
+		End If
+
+		
+		'********************
+		'********************
+		
+		
+		' if the row is not empty so far and we are not at the last curve
+		' overall, move the curve to it's correct row and position
+		If p > 0 And n < Ubound (aCrvs)  Then
+			
+			MoveToRow sCrv, n, aCrvs, yDist, aBase, Spacing
+			
+		End If
+		
+		
+		
+		If p > 0 Or n = Ubound(aCrvs) Then
+			
+			If n = Ubound(aCrvs)Then
+				
+				GetLowPt(sCrv)
+
+			End If
+			
+		Else 
+			
+			Rhino.MoveObject sCrv,aBase, Array(0,yDist-aBase(1),0)
+			
+		End If
+		
+		'		Rhino.AddTextDot n, Rhino.CurveStartPoint(sCrv)
+		n = n + 1 ' increment the total number of placed curves
+		p = p + 1 'increment the number of curves in the current row
+		
+		'increment the X distance by the length of the 
+		'curve bounding box plus Spacing
+		dblDist = dblDist + Spacing + (Rhino.Distance (aBB(0), aBB(1)))
+		
+		
+		ReDim Preserve aMoved(f)
+		aMoved(f) = sCrv
+		f = f +1
+		
+		
+		
+	Next
+	
+	
+	
+	
+	For i = n To UBound(aCrvs)
+		Rhino.DeleteObject aCrvs(i)
+	Next
+	
+	
+	
+	If Even = False Then
+		ReDim Preserve aPath(q)
+		aPath(q) = aBBRow(2)
+		q = q +1
+	Else
+		ReDim Preserve apath(q)
+		aPath(q) = aBBRow(3)
+		q = q +1
+	End If
+	
+	ReDim Preserve apath(q)
+	aPath(q) = array(dblX, dblY,0)
+	q = q +1
+	
+	
+	Rhino.EnableRedraw(False)
+	Dim Polyline:Polyline =	Rhino.AddPolyline (Rhino.CullDuplicatePoints(aPath))
+	
+	aCrvs = aMoved
+	Polyline = ProcessCurves(Polyline,aNodes,aCrvs,dblGap)
+	Dim aResults: aresults = Rhino.JoinArrays(array(Polyline), aCrvs)
+	
+	'	MsgBox "OK"
+	
+	Rhino.MoveObject polyline, array(0,0,0), aOrigin
+	
+	If isUpperBound(aPtObj) Then
+		If UCase(BlnPt) = "YES" Then
+			Rhino.MoveObjects aPtObj,array(0,0,0), aOrigin
+		End If
+	End If
+		
+	'	Rhino.Command "Rectangle " &Rhino.Pt2Str(aOrigin,,True)&dblX &" " &dblY & " Enter"
+	
+End Sub
+
+Function ProcessCurves (Polyline,aPathPts,aCrvs, dblGap)
+	
+	Dim Plane, i, aInt
+	Plane = Rhino.WorldXYPlane
+	Dim Endpt: EndPt = Rhino.CurveEndPoint(Polyline)
+	Dim Pt1,pt2,Pt3,Pt4,par1,par2, par3,par4
+	Dim aparam1 , aparam2
+	Dim Line1,Line2, tempCirc, aSplit, aPolyline, Crv
+	Dim aSplit2, temp1, temp2
+	'Rhino.EnableRedraw(True)
+	Dim aDom,Dom1, Dom2
+	Dim NewLine1, NewLine2
+	Dim temp
+	Dim dblTol: dblTol = Rhino.UnitAbsoluteTolerance
+	Dim aTempPOly(), atemp, k
+	Dim intTestCurve, testCurve, sTemp
+	
+	
+	For i = 0 To UBound(aPathPts)
+	
+		intTestCurve = FindClosestCurveToPoint (aPathPts(i),aCrvs)
+		testCurve = aCrvs(intTestCurve)
+		
+		RemoveFromArray  aCrvs,testCurve
+		
+		k = 0
+		plane = Rhino.MovePlane (Plane,aPathPts(i))
+		
+		tempCirc = Rhino.AddCircle (Plane,dblGap/2)
+		
+		aInt = Rhino.CurveCurveIntersection(Polyline,tempCirc,0.0001)
+		Pt1 = aInt(0,1)
+		Pt2 = aInt(1,1)
+		par1 = aInt(0,5)
+		par2 = aInt(1,5)
+		
+		If par1>par2 Then
+			temp = par2
+			par2 = par1
+			par1 = temp
+		End If
+		
+		aSplit = Rhino.SplitCurve(Polyline,Par1)
+		
+		aDom =Rhino.CurveDomain(aSplit(0))
+		dom1 = aDom(0)
+		dom2 = aDom(1)
+		
+		If (Dom1 <par2) And (par2<Dom2) Then
+			aSplit2 = Rhino.SplitCurve (aSplit(0), par2)
+			temp1 = aSplit(1)
+		Else
+			aSplit2 = Rhino.SplitCurve(aSplit(1), par2)
+			temp1 = aSplit(0)
+		End If
+		
+		If Rhino.CurveLength(aSplit2(0)) < Rhino.CurveLength(aSplit2(1)) Then
+			Rhino.DeleteObject aSplit2(0)
+			temp2 = aSplit2(1)
+		Else
+			Rhino.DeleteObject aSplit2(1)
+			temp2 = aSplit2(0)
+		End If
+
+		aPolyline = array(temp1,temp2)
+	
+		aInt = Rhino.CurveCurveIntersection(testCurve,tempCirc)
+		Pt3 = aInt(0,1)
+		Pt4 = aInt(1,1)
+		par3 = aInt(0,5)
+		par4 = aInt(1,5)
+		
+		Rhino.DeleteObject tempCirc
+		'	Rhino.MoveObject tempCirc, array(0,0,0), array(10,10,0)
+		
+		If par3 > par4 Then
+			aParam2 = array(par3,par4) 
+		Else
+			aParam2 = array(par4,par3)
+		End If
+		
+		crv = Rhino.TrimCurve(testCurve,aParam2, False)
+
+		
+		If Rhino.CurveLength(crv) < .1*Rhino.CurveLength(testCurve) Then
+			Rhino.DeleteObject Crv
+			reverseArray aParam2
+			crv = Rhino.TrimCurve(testCurve,aParam2, True)
+		Else Rhino.DeleteObject testCurve
+		End If
+		
+			
+		If Rhino.Distance (Pt1, Pt3) < Rhino.Distance(Pt1,Pt4) Then
+			If Rhino.Distance (Pt1, Pt3)> dblTol Then
+				
+				NewLine1 = Rhino.AddLine (Pt1,Pt3)
+			End If
+			
+			If Rhino.Distance (Pt2, Pt4)> dblTol Then
+				NewLine2 = Rhino.AddLine(Pt2,Pt4)
+			End If
+			
+		Else
+			If Rhino.Distance (Pt1, Pt4)> dblTol Then
+				NewLine1 = Rhino.AddLine (Pt1,Pt4)
+			End If
+			
+			If Rhino.Distance (Pt2, Pt3)> dblTol Then
+				NewLine2 = Rhino.AddLine(Pt2,Pt3)
+			End If
+			
+		End If
+		
+		atemp =array(aPolyline(0), aPolyline(1),newline1,newLine2,Crv)
+		
+		For Each stemp In aTemp
+			If Not IsEmpty(stemp) Then
+				ReDim Preserve atempPoly(k)
+				atempPoly(k) = stemp
+				k = k +1
+			End If
+		Next
+		
+		temp = Rhino.JoinCurves(aTempPoly,True)
+		Polyline = temp(0)
+	Next
+
+	ProcessCurves = Polyline
+	
+End Function
+
+Function GetLowPt(sCrv)
+
+	Dim Result
+	
+	Dim aBB: aBB = Rhino.BoundingBox(sCrv)
+	
+	Result = aBB(0)
+	
+	GetLowPt = Result
+	
+End Function
+
+Sub MoveToRow(sCrv, n, aCrvs, yDist, aBase, Spacing)
+	
+	'find the BB of the previous curve in the row
+	Dim aBBlast, atarg
+	abbLast = Rhino.BoundingBox(aCrvs(n-1))
+			
+	'the target point for moving the curve is x of the last curve BB max X
+	'plus the spacing amount, Y of the current Y distance minus the current
+	'curve's base point Y coordinate,Z of the last curve's BB 
+	aTarg = array(aBBlast(1)(0)+Spacing, (yDist-aBase(1)), aBBlast(1)(2))
+		
+	'Move the curve
+	Rhino.MoveObject sCrv, aBase, aTarg
+	Rhino.UnselectAllObjects
+	
+End Sub
+
+Sub RotateToY(sCrv)
+	
+	'Dim sCrv : scrv = Rhino.GetObject("select curve",4,True)
+	
+	If isNull(sCrv) Then Exit Sub
+	
+	Dim Cplane: CPlane = Rhino.ViewCPlane
+	
+	Dim aCent: aCent = Rhino.CurveAreaCentroid(sCrv)
+	If isNull(aCent) Then Exit Sub
+	
+	Dim Plane: Plane = Rhino.MovePlane(Cplane, aCent(0))
+	
+	Dim Steps: Steps = 91'the number of samples in 90 degrees
+	
+	Rhino.ViewCPlane Rhino.CurrentView, Plane
+	
+	Dim aBB: aBB = Rhino.BoundingBox(sCrv,Rhino.CurrentView)
+	
+	Dim Ratio
+	Dim aRatio(), n
+	Dim inc: inc = 90/Steps 'the angle increment in degrees
+	Dim AxisPt: AxisPt = Rhino.PointAdd(aCent(0),Cplane(3))
+	Dim aVec: avec = Rhino.VectorCreate(aCent(0),AxisPt)
+	
+	'Rhino.EnableRedraw(False)
+	
+	For n = 0 To Steps
+		
+		Plane =	Rhino.RotatePlane (CPlane,n*inc, aVec)
+		
+		Rhino.ViewCPlane Rhino.CurrentView, Plane
+		aBB = Rhino.BoundingBox(sCrv,Rhino.CurrentView)
+		Ratio = Rhino.Distance (aBB(0),aBB(1))/Rhino.Distance (aBB(0),aBB(3))
+		
+		ReDim Preserve aRatio(n)
+		aRatio(n) = Ratio
+		
+	Next
+	
+	Rhino.ViewCPlane Rhino.CurrentView, CPlane
+	Dim Line1: Line1 =array(aCent(0),Rhino.PointAdd(aCent(0),Plane(1)))
+	
+	Dim p: p = FindLargestInArray(aRatio)
+	Plane = Rhino.MovePlane(Cplane, aCent(0))
+	Plane =	Rhino.RotatePlane (Plane,p*inc, aVec)
+
+	Rhino.ViewCPlane Rhino.CurrentView, Plane
+
+	aBB = Rhino.BoundingBox(sCrv,Rhino.CurrentView)
+	Dim Line2
+	
+	'Use a less-than sign below to align to X
+	'Use a greater-than sign to align to Y
+	
+	If Rhino.Distance(aBB(0),aBB(1))< Rhino.Distance(aBB(0),aBB(3))Then
+		Line2 = array(aBB(0),aBB(1))
+	Else line2 =array(aBB(0),aBB(3))
+	End If
+	
+	Dim aAngle: aAngle = Rhino.Angle2 (Line1, Line2)
+	Rhino.RotateObject sCrv, aCent(0),abs(aAngle(0)), aVec
+	Rhino.ViewCPlane Rhino.CurrentView,Cplane
+	Rhino.SelectObject sCrv
+	
+	
+	
+End Sub
+
+Function FindLargestInArray(arr)
+	
+	'The result is the index of the most extreme
+	'number in the array, checking for the largest number And
+	'the inverse of the smallest number
+	'This is checking aspect ratio of a 
+	'rectangle, so the inverse of the
+	'smallest is valid as well.
+	
+	Dim  n, p, arr2
+	p = 0
+	arr2 = Rhino.SortNumbers(arr, True)
+
+	Dim bound: Bound = Ubound(arr)
+	Dim num
+	
+	If arr2(0)< 1/arr2(Bound) Then
+		num = arr2(0)
+	Else num = arr2(Bound)
+	End If
+	
+	
+	For Each n In arr 
+		If n = num Then
+			Exit For
+		End If
+		p = p +1
+	Next
+	
+	FindLargestInArray = p
+	
+End Function
+
+Sub ReverseArray(ByRef arrIn)
+	
+	Dim n, UB, i
+	n = 0
+	UB = UBound(arrIn)
+	
+	Dim temp()
+	
+	For i = 0 To Ubound(arrIn)
+		ReDim Preserve temp(i)
+		temp(i) = arrIn(i)
+	Next
+	
+	For i = 0 To UB
+		ReDim Preserve arrIn(n)
+		arrIn(n) = Temp(UB-i)
+		n = n +1
+	Next
+	
+End Sub
+
+Function IsUpperBound(ByRef arr)
+
+	IsUpperBound = False
+
+	If IsArray(arr) Then
+
+		On Error Resume Next
+
+		UBound arr
+
+		If Err.Number = 0 Then IsUpperBound = True
+
+	End If
+
+End Function
+
+Function SortByHeight(aObj)
+	Dim aDist(),aBB,sObj, result()
+	Dim n,i, temp
+	n = 0
+	For i = 0 To Ubound(aObj)
+		
+		aBB = Rhino.BoundingBox(aObj(i))
+		
+		ReDim Preserve adist(n)
+		aDist(n) = Rhino.Distance (aBB(0), aBB(3))
+	
+		n = n + 1
+	Next
+	
+	If isUpperBound(aDist) Then
+		temp = Rhino.SortNumbers(aDist)
+	End If
+	
+	For i = 0 To uBound(temp)
+		For	n = 0 To UBound(aObj)
+			If aDist(n) = temp(i) Then
+				ReDim Preserve result(i)
+				result (i) = aObj(n)
+			End If
+		Next
+	Next
+	
+	SortByHeight = result		
+	
+End Function
+
+Function FindRightMostInt(aInt)
+
+	Dim i, result, aPts(), n
+	n = 0
+	
+	For i = 0 To UBound(aInt)
+		If aint(i,0) = 1 Then
+			ReDim Preserve aPts(n)
+			aPts(n) = aInt(i,1)
+			
+		Else 
+			ReDim Preserve aPts(n)
+			apts(n) = aInt(i,1)
+			n = n + 1
+			ReDim Preserve aPts(n)
+			apts(n) = aInt(i,2)
+			n = n +1
+		End If
+	
+	Next
+
+	
+	If isUpperBound(aPts) Then
+		Dim temp: temp = apts(0)
+
+		For i = 1 To UBound(aPts)
+			If aPts(i)(0) > temp(0) Then
+				temp = apts(i)
+			End If
+			
+		Next
+	Else Exit Function	
+	End If
+
+		
+	FindRightMostInt = temp
+End Function
+
+Function FindClosestCurveToPoint (aPt,aCrvs)
+	Dim result, i
+	Dim temp: temp = Rhino.CurveClosestPoint(aCrvs(0),aPt)
+	Dim tempLoc : tempLoc = Rhino.EvaluateCurve(aCrvs(0),temp)
+	Dim tempDist:tempDist = Rhino.Distance (aPt,tempLoc)
+	For i = 1 To UBound(aCrvs)
+		temp = Rhino.CurveClosestPoint(aCrvs(i),aPt)
+		tempLoc = Rhino.EvaluateCurve(aCrvs(i),temp)
+		temp = Rhino.Distance (aPt,tempLoc)
+		If temp	< tempDist Then
+			tempDist = temp
+			Result = i
+		End If
+	Next
+	FindClosestCurveToPoint = result
+	
+End Function
+
+Function RemoveFromArray (ByRef aCrvs,testCurve)
+	
+	Dim result(), crv, n
+	n = 0
+	
+	For Each Crv In Acrvs 
+		If Crv <> testCurve Then
+			
+			ReDim Preserve result(n)
+			result(n) = Crv
+			n = n +1
+		End If
+	Next
+	aCrvs = result
+	
+End Function

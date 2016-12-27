@@ -1,0 +1,17 @@
+﻿Function GetArrayIdx(arr,str)
+	
+	Dim result, i
+	
+	str = Ucase(str)
+	
+	For i = 0 To uBound(arr)
+		If str = uCase(arr(i)) Then
+			Result = i
+			Exit For
+		End If
+
+	Next
+
+	GetArrayIdx = Result
+	
+End Function

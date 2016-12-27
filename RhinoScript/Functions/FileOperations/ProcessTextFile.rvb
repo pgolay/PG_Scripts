@@ -1,0 +1,87 @@
+﻿Option Explicit
+'Script written by Pascal
+' Thursday, September 04, 2008 
+
+Call ReadTextFile()
+
+Sub ReadTextFile
+
+	Dim objFSO, objFile, strFileName, strLine
+
+	Const ForReading = 1
+
+	strFileName = Rhino.OpenFileName("Open", "Text Files (*.txt)|*.txt||")
+
+	If IsNull(strFileName) Then Exit Sub
+
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+
+	Set objFile = objFSO.OpenTextFile(strFileName, ForReading)
+
+	ProcessEveryNthLine strFileName,1
+
+	Set objFSO = Nothing
+
+End Sub
+	
+Sub ProcessEveryNthLine(sFile,n)
+	'returns a multi line string with every nth line from a text file.
+	Const ForReading = 1
+	
+	Dim objFSO, objFile, strText
+
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+
+
+	On Error Resume Next
+	Set objFile = objFSO.OpenTextFile(sFile, ForReading)
+	If Err Then
+		MsgBox Err.Description
+		Exit Sub
+	End If
+
+	Dim q : q = 0
+	'Dim n : n = CInt(100/intDiv)
+	Dim stemp, int1, intlen
+	Dim sFile2: sFile2 = "C:\Test\Thing.txt"' this is the new file being written. 
+	
+	Set ObjectStream  = ObjFSO.CreateTextFile(sFile2, True)
+	Set ObjectStream  = Nothing
+	
+	While Not objFile.AtEndOfStream
+	
+		sTemp =  objFile.ReadLine
+		q = q+1
+		If q = n Then
+			int1 = Null
+			If Not objFile.AtEndOfStream Then
+			
+			
+				'Process the file here. Writing to a new file is below
+				'WriteANewLine (strFileName, strLine, fso)
+	
+			End If
+			q =0
+		End If
+
+	Wend
+
+	objFile.Close
+
+	Set objFile = Nothing
+	Set objFSO = Nothing
+
+End Sub
+
+Sub WriteANewLine (strFileName, strLine, fso)
+	'open the file for appending
+	Const ForAppending = 8
+	Dim MyFile
+	Set MyFile  = fso.OpenTextFile(strFileName, ForAppending, True)
+	MyFile.WriteLine (strLine)'Write the line
+	MyFile.Close 'Close the file
+  
+End Sub
+
+'Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+'Rhino.AddAlias "","_NoEcho _-Runscript ()"

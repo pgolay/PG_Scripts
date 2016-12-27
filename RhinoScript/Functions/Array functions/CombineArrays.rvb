@@ -1,0 +1,26 @@
+﻿
+Function CombineArrays(arr)
+	
+	Dim aResult,temp, i,n
+	
+	For i = 0 To Ubound(arr)
+		If isUpperbound(arr(i)) Then
+			
+			aResult = arr(i)
+			Exit For
+			
+		End If
+	Next
+	
+	For n = i+1  To UBound (arr)
+		
+		temp= Rhino.JoinArrays(aresult,arr(n))
+		If Not isNull(temp) Then
+			aresult =  temp
+		End If
+		
+	Next
+	
+	CombineArrays = aResult
+
+End Function

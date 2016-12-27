@@ -1,0 +1,14 @@
+﻿Function CullEmptyElements(arr)
+	Dim aresult(), i, n
+	n = 0
+	For i = 0 To ubound(arr)
+		
+		if not isEmpty(arr(i)) then 
+			ReDim Preserve aresult(n)
+			aresult(n) = arr9i)
+			n = n + 1
+		End If
+	Next
+	CullEmptyElements = aResult
+
+End Function

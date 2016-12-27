@@ -1,0 +1,26 @@
+﻿
+
+Function CycleArray(arr,intPos)
+	'Cycles an array around intPos number of positions- the end of the array
+	'comes around to the beginning and all elemwents are shifted accordingly.
+	dim Arr1, arr2, n, i
+	n = 0
+	redim arr1(intPos-1)
+	redim arr2(UBound(arr)-(intPos))
+	
+	for i = UBound(arr)-(intPos-1) to UBound(arr)
+		
+		arr1(n) = arr(i)
+		n = n + 1
+		
+	Next
+	
+	For i = 0 to UBound(arr)-(intPos)
+		
+		arr2(i) = arr(i)
+	
+	next
+	
+	CycleArray = Rhino.JoinArrays(arr1, arr2)
+	
+End Function

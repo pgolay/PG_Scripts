@@ -1,0 +1,10 @@
+Function HalfDomainSrf(sSrf)
+
+	Dim aDomU: aDomU = Rhino.SurfaceDomain(sSrf,0)
+	Dim aDomV: aDomV = Rhino.SurfaceDomain(sSrf,1)
+	Dim halfU:HalfU = (aDomU(1) + aDomU(0))/2
+	Dim HalfV:HalfV = (aDomV(1) + aDomV(0))/2
+	
+	HalfDomainSrf = array(HalfU,HalfV)
+	
+End Function

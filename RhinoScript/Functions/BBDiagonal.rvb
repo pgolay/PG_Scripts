@@ -1,0 +1,7 @@
+﻿Function bbDiag(aObj)
+	
+	dim aBB: aBB = Rhino.BoundingBox(aObj)
+	
+	BbDiag = Rhino.Distance (aBB(0),aBB(6))
+	
+End Function

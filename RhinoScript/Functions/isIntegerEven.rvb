@@ -1,0 +1,10 @@
+﻿
+Function IsIntegerEven(inty)
+
+	Dim Result: result = False
+	
+	If CInt(inty/2) = Inty/2 Then Result = True
+	
+	IsIntegerEven = Result
+	
+End Function

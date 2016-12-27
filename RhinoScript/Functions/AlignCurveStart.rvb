@@ -1,0 +1,41 @@
+﻿Sub CurveEndClosest(Crv1,Crv2)
+	'sets the two curves so that the start point
+	'of each is at the ends that
+	'are closes to one another
+	
+	Dim aStart1: astart1 = Rhino.CurveStartPoint(crv1)
+	
+	Dim aStart2: aStart2 = Rhino.CurveStartPoint(crv2)
+	
+	
+	Dim aEnd1: aEnd1 = Rhino.CurveEndPoint(crv1)
+	Dim aEnd2: aEnd2 = Rhino.CurveEndPoint(crv2)
+	
+	
+	Dim aPts1: aPts1 = array(aStart1,aEnd1)
+	Dim apts2: aPts2 = array(aStart2,aEnd2)
+	
+	Dim Dist: Dist = Rhino.Distance(aStart1,aStart2)
+	Dim i, n, X, temp
+	For i = 0 To 1
+		For n = 0 To 1
+			
+			temp = Rhino.Distance(aPts1(i), aPts2(n))
+			If temp<Dist Then
+				dist = Temp
+				X = array(i,n)
+			End If
+		Next
+	Next
+	
+	If X(0)= 0 And x(1) = 1 Then
+		Rhino.ReverseCurve Crv2
+	ElseIf X(0) = 1 And X(1) = 1 Then
+		Rhino.ReverseCurve Crv1
+		Rhino.reverseCurve Crv2
+	ElseIf X(0) = 1 And X(1) = 0 Then
+		Rhino.ReverseCurve Crv1
+	End If
+	
+	
+End Sub

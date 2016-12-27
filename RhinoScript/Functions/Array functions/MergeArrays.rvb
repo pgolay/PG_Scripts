@@ -1,0 +1,27 @@
+﻿
+
+Function MergeArrays(arr)
+
+	Dim temp, Result, i
+	
+	If UBound(arr) > 0 Then
+
+		temp = Rhino.JoinArrays(arr(0), arr(1))
+		
+	Else temp = arr(0)
+		
+	End If
+	
+	If UBound(arr)>1 Then
+		
+		For i = 1 To UBound(arr)
+			
+			temp = Rhino.JoinArrays(temp, arr(i))
+			
+		Next
+		
+	End If
+	
+	MergeArrays = temp
+	
+End Function

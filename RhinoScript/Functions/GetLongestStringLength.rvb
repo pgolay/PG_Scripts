@@ -1,0 +1,12 @@
+﻿Function GetLongestStringLength(aStr)
+	Dim temp:temp = 0
+	Dim str
+	For Each str In aStr
+		
+		If len(str) >temp Then
+			temp = len(str)
+		End If
+	Next
+	
+	GetLongestStringLength = temp
+End Function

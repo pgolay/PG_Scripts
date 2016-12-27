@@ -1,0 +1,10 @@
+﻿Function Arcos(dblAng, blnRad)
+	'dblAng input in radians
+	
+	If BlnRad = True then 'output in radians
+		Arcos = Atn(-dblAng / Sqr(-dblAng * dblAng + 1)) + 2 * Atn(1)
+	Else 'output in degrees
+		Arcos = Rhino.ToDegrees(  Atn(-dblAng / Sqr(-dblAng * dblAng + 1)) + 2 * Atn(1))
+	End if
+	
+End Function

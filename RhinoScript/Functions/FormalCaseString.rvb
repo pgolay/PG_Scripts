@@ -1,0 +1,4 @@
+﻿Function FormalCaseString(str)
+	
+	FormalCaseString =UCase(left(str,1)) & lCase(Right(str,len(str)-1))
+End Function

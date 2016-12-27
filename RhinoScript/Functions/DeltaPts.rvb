@@ -1,0 +1,11 @@
+﻿
+
+Function DeltaPts(aPt1,aPt2)
+	Dim dX, dY, dZ
+	
+	dX = apt2(0)-aPt1(0)
+	dY = aPt2(1)- aPt1(1)
+	dZ = aPt2(2) - aPt1(2)
+
+	DeltaPts = Array(dX,dY,dZ)
+End Function

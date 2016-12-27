@@ -1,0 +1,40 @@
+﻿Sub ProcessEveryNthLine(sFile,n)
+	'returns a multi line string with every nth line from a text file.
+	Const ForReading = 1
+	
+	Dim objFSO, objFile, strText
+
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+
+
+	On Error Resume Next
+	Set objFile = objFSO.OpenTextFile(sFile, ForReading)
+	If Err Then
+		MsgBox Err.Description
+		Exit Sub
+	End If
+
+	Dim q : q = 0
+	'Dim n : n = CInt(100/intDiv)
+	Dim stemp
+	
+	While Not objFile.AtEndOfStream
+	
+		sTemp =  objFile.ReadLine
+		q = q+1
+		If q = n Then
+			If Not objFile.AtEndOfStream Then
+				'Process the line of text here, like: 'strText = strText & sTemp & VbCrLf
+
+			End If
+			q =0
+		End If
+
+	Wend
+
+	objFile.Close
+
+	Set objFile = Nothing
+	Set objFSO = Nothing
+
+End Sub

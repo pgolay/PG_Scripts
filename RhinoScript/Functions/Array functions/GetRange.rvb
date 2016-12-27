@@ -1,0 +1,26 @@
+﻿
+Function GetRange(arr,idx)
+	'find the range of values in an array
+	Dim i
+	Dim max, min
+	
+	max = arr(0)(idx)
+	min = arr(0)(idx)
+	
+	For i = 1 To uBound(arr)
+		
+		If arr(i)(idx) < Min Then
+			min = arr(i)(idx)
+		End If
+		
+		If arr(i)(idx) > Max Then
+			max = arr(i)(idx)
+		End If
+		
+		
+	Next
+	
+	GetRange = array(Min,Max)
+	
+
+End Function

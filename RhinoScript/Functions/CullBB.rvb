@@ -1,0 +1,23 @@
+﻿Function CullBB(aBB,sView)
+	Dim result
+	
+
+	If Rhino.PointCompare(abb(0),abb(4)) Then
+			
+		result = array(aBB(0), aBB(1), aBb(2), aBb(3))
+	ElseIf Rhino.PointCompare(abb(0),abb(1)) Then
+			
+		result = array(abb(0), aBB(4), aBB(7), aBB(3))
+			
+	ElseIf Rhino.PointCompare(abb(0),abb(3)) Then
+			
+		result = array(aBb(0),aBb(1), aBB(5), aBB(7))
+			
+	Else result = abb
+	End If
+		
+		
+
+	CullBB = result
+
+End Function

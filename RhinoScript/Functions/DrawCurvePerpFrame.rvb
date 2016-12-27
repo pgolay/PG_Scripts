@@ -1,0 +1,58 @@
+﻿Option Explicit
+'Script written by Pascal
+
+'Script version Sunday, May 08, 2011 
+
+'Rhino.AddStartupScript Rhino.LastLoadedScriptFile()
+'Rhino.AddAlias " ", "_NoEcho _-Runscript ( )"
+
+Call Main()
+Sub Main()
+	dim sCrv: sCrv = Rhino.GetObject(,4,true)
+	dim aPt: aPt = Rhino.GetPointOnCurve(sCrv)
+	dim par: par = Rhino.CurveClosestPoint(sCrv,aPt)
+	DrawPlaneFrame rhino.CurvePerpFrame(sCrv,par), 10
+End Sub
+
+
+
+Sub DrawPlaneFrame (aPlane, dblScale)
+	
+	Rhino.EnableRedraw(False)
+	
+	Dim pt0: Pt0 =aPlane(0)
+	dim aLines(5)
+	
+	Dim vec1: vec1 = Rhino.VectorScale(aPlane(1),dblScale)
+	Dim pt1: Pt1 = Rhino.PointAdd (Pt0,vec1)
+	Dim Pt4: Pt4 = Rhino.PointAdd (Pt0,Rhino.VectorReverse(Vec1))
+
+	Dim vec2: vec2 = Rhino.VectorScale(aPlane(2),dblScale)
+	Dim pt2: Pt2 = Rhino.PointAdd (Pt0,Vec2)	
+	Dim Pt5: Pt5 = Rhino.PointAdd (Pt0,Rhino.VectorReverse(Vec2))
+	Dim vec3: vec3 = Rhino.VectorScale(aPlane(3),dblScale)
+	Dim pt3: Pt3 = Rhino.PointAdd (Pt0,Vec3)	
+	Dim Pt6: Pt6 = Rhino.PointAdd (Pt0,Rhino.VectorReverse(Vec3))
+	
+	aLines(0) = Rhino.AddLine (Pt0,Pt1)
+	aLines(1) = Rhino.AddLine (Pt0,pt2)
+	aLines(2) =	Rhino.AddLine (Pt0,Pt3)
+	aLines(3) = Rhino.AddLine (Pt0,Pt4)
+	aLines(4) = Rhino.AddLine (Pt0,Pt5)
+	aLines(5) = Rhino.AddLine (Pt0,Pt6)
+	
+	Rhino.ObjectColor array(alines(0),alines(3)), vbred
+	Rhino.ObjectColor array(alines(1),alines(4)), vbgreen
+	rhino.ObjectColor array(alines(2),alines(5)), vbBlue
+	
+	dim i
+	For i = 0 to 2
+		Rhino.CurveArrows aLines(i),2
+	next
+			
+	Dim sgrp: sGrp = Rhino.AddGroup
+	
+	Rhino.AddObjectsToGroup aLines,sGrp
+	Rhino.EnableRedraw(true)
+	
+End Sub
