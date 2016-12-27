@@ -1,0 +1,237 @@
+Option Explicit
+'Script written by Pascal
+' RMA
+'Script version Wednesday, December 05, 2012
+
+Rhino.AddStartUpScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "ZoomScale", "_NoEcho _-Runscript (ZoomScale)"
+Rhino.AddAlias "ZoomCalibrate", "_NoEcho _-Runscript (ZoomCalibrate)"
+Rhino.AddAlias "Loupe", "_NoEcho _-Runscript (Loupe)"
+Rhino.AddAlias "LoupeSelected", "_NoEcho _-Runscript (LoupeSelected)"
+Rhino.AddAlias "LoupePt", "_NoEcho _-Runscript (LoupePt)"
+Rhino.AddAlias "LoupeBrowse", "_NoEcho _-Runscript (LoupeBrowse)"
+
+
+'http://pxcalc.com/
+
+Private OldScale,oldLoupeScale, saved_ppi
+If IsEmpty(oldScale) Then
+	OldScale = 1
+End If
+
+If IsEmpty(oldLoupeScale) Then
+	OldLoupeScale = 1
+End If
+
+If isEmpty(saved_ppi) Then
+	saved_ppi = 141.21
+End If
+
+'Call ZoomScale()
+'Call ZoomCalibrate()
+'Call Loupe()
+'Call LoupeUpdate()
+'Call LoupePt()
+'Call LoupeScale()
+'Call LoupeBrowse()
+
+Sub ZoomScale()
+
+	Dim intPx: intPx = 478'the pixels in the calibration bar of Zoom1To1Calibrate
+	'Dim dblRes: dblRes = 141.21'Monitor ppi (http://pxcalc.com/)
+	
+	Dim dblFull: dblFull = intPx / saved_ppi
+	
+	Dim dblScale: dblScale = Rhino.GetReal("Set zoom factor.", OldScale)
+	If isNull(dblScale) Then Exit Sub
+	OldScale = dblScale
+	
+	Dim dblZoom: dblZoom = (1 / dblScale) * dblFull
+	
+	Rhino.Command "_-Zoom1To1Calibrate _UnitSystem=Inches " & dblZoom, False
+	Rhino.Command "_Zoom _1To1", False
+	Rhino.Command "_-Zoom1To1Calibrate _UnitSystem=Inches " & dblFull, False
+	
+End Sub
+
+
+Sub ZoomCalibrate()
+	
+	Dim defW: defW = 1920 'default width, pixels
+	Dim defH: defH = 1080 'default height, pixels
+	Dim defD: defD = 23 'default diagonal, Inches
+	
+	Dim H,W,D
+	H = Rhino.GetInteger("Monitor height, in pixels.", defH)
+	If isNull(H) Then Exit Sub
+	
+	W = Rhino.GetInteger("Monitor width, in pixels.", defW)
+	If isNull(W) Then Exit Sub
+	
+	D = rhino.GetReal("Set monitor diagonal measurement, in Inches.", defD)
+	If isNull(d) Then Exit Sub
+	
+	Dim ppi: ppi = round(sqr(W ^ 2 + H ^ 2) / D, 2)
+	saved_ppi = ppi
+	Rhino.Print ppi & " pixels per inch."
+	
+	Dim intPx: intPx = 478'the pixels in the calibration bar of Zoom1To1Calibrate
+	'Dim dblRes: dblRes = 141.21'Monitor ppi (http://pxcalc.com/)
+
+	Dim dblZoom:dblZoom = intPx / ppi
+	
+	Rhino.Command "_-Zoom1To1Calibrate _UnitSystem=Inches " & dblZoom, False
+	'Rhino.Command "_Zoom _1To1", False
+	
+End Sub
+
+'Sub ZoomScaleSetup()
+'	
+'	Dim str: str = "Get the pixel information for your monitor as " & vbNewLine _
+'		& "ppi, pixels per inch. This information can be found here:" & VbNewLine _
+'		& " http://pxcalc.com/ This has been placed on the clipboard"
+'	Rhino.Print str
+'	'MsgBox str
+'	
+'	Dim ppi: ppi = Rhino.Getreal("Set monitor ppi.", saved_ppi)
+'	If isNull(ppi) Then Exit Sub
+'	Saved_ppi = ppi
+'	
+'End Sub
+
+Sub Loupe()
+	
+	Dim sView : sView = Rhino.CurrentView()
+	
+	If Not rhino.IsView("Loupe") Then
+		Rhino.Command "_NewFloatingViewport _Enter"
+	
+		Rhino.Command "_-ViewportProperties _Title Loupe _Enter" 
+		
+	Else
+		Rhino.Print "There is a Loupe view already active. Set the desired scale." 
+	End If
+	
+	Rhino.CurrentView "Loupe"
+	Dim dblZoom: dblZoom = Rhino.getreal("Zoom factor?", oldLoupeScale)
+	oldLoupeScale = dblZoom
+	
+	If IsNull(dblZoom) Then Exit Sub
+	
+	Call ZoomScale1(oldLoupeScale)
+	
+	Rhino.CurrentView sView
+		
+End Sub
+
+Sub ZoomScale1(dblScale)
+	Rhino.CurrentView "Loupe"
+	Dim intPx: intPx = 478'the pixels in the calibration bar of Zoom1To1Calibrate
+	Dim dblRes: dblRes = 141.21'Monitor ppi (http://pxcalc.com/)
+	
+	Dim dblFull: dblFull = intPx / saved_ppi
+	
+	'Dim dblScale: dblScale = Rhino.GetReal("Set zoom scale.", OldScale)
+	If isNull(dblScale) Then Exit Sub
+	'OldScale = dblScale
+	
+	Dim dblZoom: dblZoom = (1 / dblScale) * dblFull
+	
+	Rhino.Command "_-Zoom1To1Calibrate _UnitSystem=Inches " & dblZoom, False
+	Rhino.Command "_Zoom _1To1", False
+	Rhino.Command "_-Zoom1To1Calibrate _UnitSystem=Inches " & dblFull, False
+	
+End Sub
+
+Sub LoupeTarget(aPt)
+	Dim X: X = Rhino.CurrentView()
+	
+	If Not rhino.IsView("Loupe") Then
+		Call Loupe()
+	End If
+	
+	If IsNull(aPt) Then
+		aPt = Rhino.GetPoint("Set Loupe look-at point.")
+		If Not isArray(aPt) Then Exit Sub
+	End If
+	
+	Rhino.CurrentView "Loupe"
+	Dim aCam: aCam = Rhino.ViewCameraTarget()
+	Dim VecDir: VecDir = Rhino.VectorCreate(aCam(0), aCam(1))
+	'Rhino.AddLine aCam(0), aCam(1)
+	Rhino.ViewCameraTarget "Loupe", Rhino.PointAdd(aPt, vecDir), aPt
+	ZoomScale1(oldLoupeScale)
+	Rhino.CurrentView X 
+	Rhino.EnableRedraw True
+	
+End Sub
+
+Sub LoupePt()
+	
+	Call LoupeTarget(Null)
+	
+End Sub
+
+
+
+Sub LoupeBrowse()
+	
+	Do
+		Dim aPt: aPt = Rhino.GetPoint("Set Loupe look-at point.")
+		If Not isArray(aPt) Then Exit Sub
+		Call LoupeTarget(aPt)
+	Loop 	
+	
+End Sub
+
+
+Sub LoupeSelected()
+	
+	Dim X: X = Rhino.CurrentView()
+	
+	If Not rhino.IsView("Loupe") Then
+		Call Loupe()
+	End If
+	
+	Rhino.EnableRedraw False
+	Rhino.CurrentView "Loupe"
+	Rhino.Command "_Zoom _Selected "
+	ZoomScale1(oldLoupeScale)
+	Rhino.CurrentView X
+	Rhino.EnableRedraw True
+	
+End Sub
+
+
+
+'Sub LoupeUpdate()
+'	Dim X: X = Rhino.CurrentView()
+'	
+'	If Not rhino.IsView("Loupe") Then
+'		Call Loupe()
+'	End If
+'	
+'	Rhino.CurrentView "Loupe"
+'	Call ZoomScale1(oldLoupeScale)
+'	
+'	Rhino.CurrentView x
+'	
+'End Sub
+
+'Sub LoupeScale()
+'	Dim X: X = Rhino.CurrentView()
+'	
+'	If Not rhino.IsView("Loupe") Then
+'		Call Loupe()
+'	End If
+'	
+'	Rhino.CurrentView "Loupe"
+'	
+'	Dim S: S = Rhino.GetReal("Set loupe scale.", oldLoupeScale)
+'	If isNull(S) Then Exit Sub
+'	oldLoupeScale = s
+'	Call ZoomScale1(oldLoupeScale)
+'	
+'	Rhino.CurrentView x
+'	
+'End Sub
