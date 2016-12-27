@@ -1,0 +1,119 @@
+﻿Option Explicit
+'Script written by Pascal
+' Tuesday, September 16, 2008 
+' Extends and then offsets a selected curve, joins the ends
+' with a line and makes a closed curve from all of these.
+
+Private oldOff
+
+If isEmpty(oldOff) Then
+	oldOff = 1
+End If
+
+
+Sub OffsetClosed
+	Offsetmain(0)
+End Sub
+
+Sub OffsetClosedSym
+	Offsetmain(1)
+End Sub
+
+
+Sub OffsetMain(intStyle)
+	
+	Dim sObj: sObj = Rhino.GetObject("Select curve.",4,True)
+	If isNull(sObj) Then Exit Sub
+
+	Dim X
+	
+	Do
+		If Not Rhino.IsCurvePlanar(sObj) Then 
+			MsgBox "The selected curve is not planar. Please select a planar curve."
+			X = False
+			sObj = Rhino.GetObject("Select planar curve.",4)
+		Else X = True
+		End If
+	Loop While X = False
+	
+
+	Dim dblOff: dblOff = Rhino.GetReal("Offset distance",oldOff)
+	If Not IsNumeric(dblOff) Then Exit Sub
+	OldOff = dblOff	
+		
+	
+	If intStyle = 0 Then
+		Dim aDir: aDir = Rhino.GetPoint("Side to offset")
+		If Not isArray(aDir) Then Exit Sub
+	End If
+	
+	
+	Rhino.EnableRedraw(False)
+	'Dim sCrv: sCrv = Rhino.CopyObject (sobj)
+	If intStyle = 0 Then
+		Dim Param: Param = Rhino.CurveClosestPoint(sObj, aDir)
+		Dim CrvPt: CrvPt = Rhino.EvaluateCurve(sObj,Param)
+	Else 
+		Crvpt = Rhino.CurveStartPoint(sobj)
+		Param = Rhino.CurveDomain(sobj)(0)
+	End If
+	
+	Dim aTanDir: aTanDir = Rhino.CurveEvaluate(sObj,param,1)
+
+	Dim VecZ: VecZ = Rhino.CurvePlane(sObj)(3)
+	Dim aPerpDir: aPerpDir = Rhino.VectorRotate(aTanDir(1),90,VecZ)
+	
+	Dim aPt1: aPt1=Rhino.PointAdd(Crvpt,Rhino.VectorScale(aPerpDir,dblOff))
+	Dim aPt2: aPt2=Rhino.PointAdd(Crvpt,Rhino.VectorScale(Rhino.VectorReverse(aPerpDir),dblOff))
+	Dim atemp, atemp2
+	
+	If intStyle = 0 Then
+		Dim aPt
+		If Rhino.Distance(aDir,aPt1)<Rhino.Distance(aDir,apt2) Then
+			aPt = aPt1
+		Else 
+			aPt = aPt2
+		End If
+	
+		atemp = Rhino.OffsetCurve(sObj,aPt,dblOff,VecZ,1)
+		If Not isArray(aTemp) Then
+			Rhino.DeleteObject sCrv
+			MsgBox "Offset failed."
+			Exit Sub
+		End If
+	Else
+		atemp = Rhino.OffsetCurve(sObj,aPt1,dblOff,VecZ,1)
+		
+		atemp2 = Rhino.OffsetCurve(sObj,aPt2,dblOff,VecZ,1)
+		If Not isArray(aTemp) Or Not isArray(atemp2) Then
+			MsgBox "Offset failed."
+			Exit Sub
+		End If
+		
+	End If
+	
+
+	Dim Line1, Line2, aJoin
+	If Not Rhino.IsCurveClosed(sobj) Then
+		
+		If intStyle = 0 Then
+			Line1 = Rhino.AddLine(Rhino.CurveStartPoint(sObj),Rhino.CurveStartPoint(atemp(0)))
+			Line2 = Rhino.AddLine(Rhino.CurveEndPoint(sObj),Rhino.CurveEndPoint(atemp(0)))
+			aJoin = Rhino.JoinCurves (array(aTemp(0), Line1, Line2,sObj),True)
+			
+		Else
+			Line1 = Rhino.AddLine(Rhino.CurveStartPoint(aTemp(0)),Rhino.CurveStartPoint(atemp2(0)))
+			Line2 = Rhino.AddLine(Rhino.CurveEndPoint(aTemp(0)),Rhino.CurveEndPoint(atemp2(0)))
+			aJoin = Rhino.JoinCurves (array(aTemp(0), Line1, Line2,atemp2(0)),True)
+			
+		End If
+	End If
+
+	
+	Rhino.EnableRedraw
+	
+End Sub
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "OffsetClosed","_NoEcho _-Runscript (OffsetClosed)"
+Rhino.AddAlias "OffsetClosedSym","_NoEcho _-Runscript (OffsetClosedSym)"

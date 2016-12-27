@@ -1,0 +1,18 @@
+﻿
+'get teo points, the second one
+'constraned by the first plus 
+'a vector
+
+Function constrained_get_points(vecDir)
+	
+	dim pt1, pt2
+	
+	pt1 = Rhino.GetPoint("Point to move from.",,,True)
+	
+	If not isArray(pt1) then exit function
+	
+	pt2 = Rhino.GetPoint( "Set distance", pt1, Rhino.PointAdd(pt1,vecDir))
+	
+	constrained_get_points = array(pt1, pt2)
+	
+End Function

@@ -1,0 +1,6 @@
+﻿Function PtPlaneToPlane(apt, Plane1, plane2)
+
+	Dim temp : temp = Rhino.XformWorldToCPlane(apt,Plane1)
+	PtPlaneToPlane = Rhino.XformCPlaneToWorld(temp,Plane2)
+
+End Function

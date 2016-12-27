@@ -1,0 +1,79 @@
+Function BBIntersect(aBB1, aBB2, intStep)
+	
+	'detects whether bounding boxes intersect:
+	'0 = BB2 and BB1 are outside each other
+	'1-7 = BB2 intersects BB1 
+	'8 = BB2 is fully inside BB1
+	'9 = BB1 is fully inside BB2
+	
+	Dim aPts: aPts = Array(aBB1(0), aBB1(6))
+	dim arr: arr =	MinMaxPts (Array(aBB1(0), aBB1(6)))
+		
+	Dim X,Y,Z, i
+
+	dim Result: Result = 0
+
+	Dim aTrue: aTrue = array(1,1,1)
+	
+	For i = 0 to 7
+		
+		X = 0
+		Y = 0
+		Z = 0
+		
+		If aBB2(i)(0) >= arr(0) And aBB2(i)(0) <= arr(1) Then X = 1
+				
+		If aBB2(i)(1) >= arr(2) And aBB2(i)(1) <= arr(3) Then Y = 1
+				
+		If aBB2(i)(2) >= arr(4) And aBB2(i)(2) <= arr(5) Then Z = 1
+				
+		If Rhino.PointCompare( array(x,y,z) , aTrue) Then Result = Result + 1
+	
+	Next
+	
+	If Result = 0 And intStep = 0 Then
+		If BBIntersect(aBB2, aBB1,1) = 0 Then
+			result = 0
+		Else
+			result = 9
+		End If
+	
+	End If
+	
+	BBIntersect = Result
+					
+End Function
+
+
+Function MinMaxPts(aPts)
+	
+	Dim minx,Maxx,MinY,MaxY,MinZ,MaxZ
+
+	
+	If aPts(0)(2)>aPts(1)(2) Then
+		Minz = aPts(1)(2)
+		maxZ = aPts(0)(2)
+	else
+		Minz = aPts(0)(2)
+		maxZ = aPts(1)(2)
+	End If
+
+	If aPts(0)(1) > aPts(1)(1) Then
+		MinY = aPts(1)(1)
+		maxY = aPts(0)(1)
+	else
+		Miny = aPts(0)(1)
+		maxY =  aPts(1)(1)
+	End If
+	
+	If aPts(0)(0) > aPts(1)(0) Then
+		Minx = aPts(1)(0)
+		MaxX = aPts(0)(0)
+	else
+		Minx = aPts(0)(0)
+		MaxX =  aPts(1)(0)
+	End If
+	
+	MinMaxPts = array(minx,Maxx,MinY,MaxY,MinZ,MaxZ)
+	
+End Function

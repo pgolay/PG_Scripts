@@ -1,0 +1,202 @@
+﻿Option explicit
+	'------------------------------------------------------------------------------
+	' RhinoScript code 
+	' Created by Brian Perry 
+	' workspace integration by Michael Meyer / flexiCAD.com
+	' German translation  by Michael Meyer / flexiCAD.com
+	'------------------------------------------------------------------------------
+	' RhinoScript code 
+	' Created by Brian Perry 
+	' Version updated August 29, 2002
+	'------------------------------------------------------------------------------
+	' Version History
+	' 10-13-2004 Add support to recursively search subfolders as well as clearing render meshes
+	' 10-15-2002 Updated to support Rhino3 and complete automation in v3
+	'------------------------------------------------------------------------------
+	' Subroutine:  BatchConvert
+	' Purpose:     Converts all Rhino supported files in a folder(s) to another format
+	'------------------------------------------------------------------------------
+	' workspace integration 
+	' workspace integration by Michael Meyer / flexiCAD.com
+	' Version October 29, 2002
+	'------------------------------------------------------------------------------
+	' Version History
+	' 10-29-2004 Workspace added
+	' 10-29-2004 Added translation text marks
+	'------------------------------------------------------------------------------
+	' Translation (The following textmarks Text1-Text7 mark the next line of the text in the code which should be translated for a local version)
+	'------------------------------------------------------------------------------
+	' Text1: "Choose a folder containing files for batch conversion"
+	' Text2: "Enter the source file extension"
+	' Text3: "Enter the destination file extension"
+	' Text4: "ClearAllMeshes (y/n)"
+	' Text5: "y"
+	' Text6: "Search Sub Folders (y/n)"
+	' Text7: "y"
+	'------------------------------------------------------------------------------
+  
+
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "BatchConvert","_-Runscript (BatchConvert)"
+
+	'Set a default directory, and file types(PG)
+
+Private OldDir, OldExtIn, OldExtOut
+
+If IsEmpty(oldDir) Then
+	OldDir = Rhino.WorkingFolder
+End If
+
+If IsEmpty(OldExtIn) Then
+	OldExtIn = "3dm"
+End If
+
+If IsEmpty(OldExtOut) Then
+	OldExtOut = "3dm"
+End If
+
+
+
+Sub BatchConvert
+	Dim folder, FolderObject, fso
+	Dim strInput, strInputLen
+	Dim strOutput, strOutputLen
+	Dim bMeshes
+	bMeshes = vbFalse
+	Dim bRecurse
+	bRecurse= vbFalse
+
+	' Text1: "Choose a folder containing files for batch conversion"
+	Rhino.Print("Choose a folder containing files for batch conversion")
+
+	folder = Rhino.BrowseForFolder(OldDir)
+	
+	If VarType(folder) = vbString Then
+		' Create a file system object
+		Set fso = CreateObject("Scripting.FileSystemObject")
+		' Create a folder object
+		Set FolderObject = fso.GetFolder(folder)
+		OldDir = folder
+	Else 
+		Exit Sub
+	End If
+
+	strInput= ".3dm"
+	' Text2: "Enter the source file extension"
+	strInput= Rhino.GetString("Enter the source file extension",OldExtIn)
+	If strInput= vbNull Then
+		Exit Sub
+	Else OldExtIn = strInput
+	End If
+
+	strOutput= ".3dm"
+	' Text3: "Enter the destination file extension"
+	strOutput= Rhino.GetString("Enter the destination file extension",OldExtOut)
+	If strOutput= vbNull Then
+		Exit Sub
+	Else OldExtOut = strOutput
+	End If
+
+	'Ensure the file extension has the "."
+	If Left(strInput,1) <> "." Then
+		strInput= "." & strInput
+	End If 
+
+	If Left(strOutput,1) <> "." Then
+		strOutput= "." & strOutput
+	End If 
+
+	'Determine if we clear the meshes as well
+	Dim sMeshes
+	' Text4: "ClearAllMeshes (y/n)"
+	sMeshes = Rhino.GetString("ClearAllMeshes (y/n)")
+	If sMeshes = vbNull Then
+		Exit Sub
+	Else
+		' Text5: "y"
+		If InStr(LCase(sMeshes ), "y") > 0 Then
+			bMeshes = vbTrue
+		End If
+	End If
+
+	'Determine if we search sub folders
+	Dim sRecurse
+	' Text6: "Search Sub Folders (y/n)"
+	sRecurse= Rhino.GetString("Search Sub Folders (y/n)")
+	If sRecurse= vbNull Then
+		Exit Sub
+	Else
+		' Text7: "y"
+		If InStr(LCase(sRecurse), "y") > 0 Then
+			bRecurse= vbTrue
+		End If
+	End If
+
+	'Lets do this thing (line 68)
+	Rhino.EnableRedraw(False)
+	
+	Dim Cnt: Cnt = RecurseConvert (FolderObject, strInput, strOutput, bMeshes, bRecurse, 0) 
+
+	Set FolderObject = Nothing
+	Set fso = Nothing
+	
+	Rhino.DocumentModified(False)
+	Rhino.Command "_-New _None ", False
+	
+	Rhino.EnableRedraw(True)
+	
+	Rhino.Print Cnt &  " files were converted."
+
+End Sub
+
+
+Sub SaveFile(sInputName, sOutputName, bMeshes)
+	
+	Rhino.DocumentModified (False)
+	Rhino.Command "-_Open " & Chr(34) & CStr(sInputName) & Chr(34), False
+
+	If bMeshes = vbTrue Then
+		Rhino.Command "_ClearAllMeshes", False
+	End If
+	
+	Rhino.Command "-_SaveAs " & Chr(34) & CStr(sOutputName) & Chr(34)& " _Enter" , False
+
+End Sub
+
+
+Function  RecurseConvert( oFolder, sInput, sOutput, bMeshes, bRecurse, cnt)
+	Dim oFile, X
+	
+	X = False 'flag to set True if any eligible files are found
+	
+	For Each oFile In oFolder.Files
+		Dim sFileName, sFileRoot, sExt, ExtLength
+		sFileName= CStr(oFile.Path)
+		sExt = Right(sFileName, Len(sInput))
+		If (sExt = sInput) Then
+			sFileRoot= Left(sFileName, Len(sFileName) - Len(sInput)) 
+			SaveFile sFileRoot & sInput, sFileRoot & sOutput, bMeshes
+			X = True
+			cnt = cnt + 1
+		End If
+	Next
+
+	If bRecurse = vbFalse Then
+		RecurseConvert = cnt
+		If X = False Then Rhino.Print "No files of of the specified type were found."
+		Exit Function
+	End If
+	
+	If X = False Then Rhino.Print "No files of of the specified type were found."
+	
+	Dim oSubFolder
+	For Each oSubFolder In oFolder.SubFolders
+		RecurseConvert oSubFolder, sInput, sOutput, bMeshes, bRecurse,cnt
+	Next
+	RecurseConvert = cnt
+	
+End Function 
+
+' Run the subroutine
+'BatchConvert

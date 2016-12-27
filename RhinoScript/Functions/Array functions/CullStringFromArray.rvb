@@ -1,0 +1,48 @@
+
+
+Sub CullStringFromArray(ByRef arr, str)
+	'not case sensitive
+	Dim Result()
+	
+	If IsArray(arr) Then
+		Dim i : i = 0
+		Dim j : j = 0
+		For i = 0 To UBound(arr)
+
+			If lCase(arr(i)) <> lCase(str) Then
+				ReDim Preserve Result(j)
+				result(j) = arr(i)
+				j = j + 1
+			
+			End If
+	
+		Next
+	End If
+	
+	arr = result
+	
+End Sub
+
+
+Sub CullIntFromArray(ByRef arr, int)
+	'not case sensitive
+	Dim Result()
+	
+	If IsArray(arr) Then
+		Dim i : i = 0
+		Dim j : j = 0
+		For i = 0 To UBound(arr)
+
+			If arr(i) <> int Then
+				ReDim Preserve Result(j)
+				result(j) = arr(i)
+				j = j + 1
+			
+			End If
+	
+		Next
+	End If
+	
+	arr = result
+	
+End Sub

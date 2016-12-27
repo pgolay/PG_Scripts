@@ -1,0 +1,20 @@
+Sub AddNewFolder(path, folderName)
+	
+	Dim fso, f, fc, nf
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	
+	On Error Resume Next
+	If Not (fso.FolderExists(path & folderName)) Then
+
+		Set f = fso.GetFolder(path)
+		Set fc = f.SubFolders
+		
+		If folderName <> "" Then
+			Set nf = fc.Add(folderName)
+		Else
+			Set nf = fc.Add("New Folder")
+		End If
+		
+	End If
+	
+End Sub

@@ -1,0 +1,11 @@
+﻿
+
+Function HowManyDecimalPlaces(dblIn)
+	
+	dim str: str = cstr(dblIn)
+	
+	dim intPos: intPos = InStr(str,chr(46))
+	
+	HowManyDecimalPlaces = Len(str) - intPos
+	
+End Function

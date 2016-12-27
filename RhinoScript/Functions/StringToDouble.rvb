@@ -1,0 +1,18 @@
+'///////////////////////////////
+'\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+Function StringToDouble(str)
+
+  str = Trim(str)
+  dbl = CDbl(str)
+  newStr = CStr(dbl)
+
+  If newStr = str Then
+    StringToDouble = dbl
+   Else
+    StringToDouble = Null
+  End If
+End Function
+
+'///////////////////////////////
+'\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\

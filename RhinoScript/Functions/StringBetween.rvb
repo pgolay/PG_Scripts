@@ -1,0 +1,18 @@
+﻿
+Function StringBetween(str,strA,strB)
+
+	Dim IntA: intA = inStr(str,strA)
+	If isNull(intA) Then Exit Function
+	
+	Dim intLen: intLen = Len(str)
+	
+	str = Right(str, intlen-intA)
+	
+	Dim IntB: intB = inStr(str,strB)
+	If isNull(intB) Then Exit Function
+	intLen = Len(str)
+	str = Left(str,intLen-intB)
+	
+	StringBetween = str
+	
+End Function

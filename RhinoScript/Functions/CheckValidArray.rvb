@@ -1,0 +1,22 @@
+﻿'/////////////////////////////////////////////////////////
+'\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+Function CheckValidArray(arrCheck, strToCheck)
+
+	Dim blnStatus, strCheck
+
+	blnStatus =False
+	If IsArray(arrCheck) Then
+		For Each strCheck In arrCheck
+			If UCase(strToCheck) = UCase(strCheck) Or strToCheck = ""Then
+				blnStatus = True
+				Exit For
+			End If
+		Next
+	End If
+	CheckValidArray = blnStatus
+
+End Function
+
+'\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+'\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\

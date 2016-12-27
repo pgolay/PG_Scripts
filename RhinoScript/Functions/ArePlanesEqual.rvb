@@ -1,0 +1,13 @@
+﻿Function ArePlanesEqual(Plane1, Plane2)
+
+	Dim i 
+	ArePlanesEqual= True
+	
+	For i = 0 To 3
+		If Not Rhino.PointCompare(Plane1(i),Plane2(i)) Then
+			ArePlanesEqual= False
+			Exit For
+		End If
+	Next
+	
+End Function

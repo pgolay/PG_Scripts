@@ -1,0 +1,9 @@
+﻿
+Sub MarkPts(aPts)
+	'FOR TESTING
+	Dim i
+	For i = 0 To uBound(aPts)
+		Rhino.AddTextDot i,aPts(i)
+	Next
+	
+End Sub

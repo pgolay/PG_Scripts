@@ -1,0 +1,32 @@
+Function CullPtFromArray(ByVal arr, pos)
+	Dim bound: bound= ubound(arr)
+	Dim i
+	dim aresult()
+	redim aresult(bound-1)
+	If IsArray(arr) Then
+		If pos >= 0 And pos <= UBound(arr) Then
+			for i = 0 to pos
+				aresult(i) = arr(i)
+			Next
+			For i = pos To UBound(arr) - 1
+				aResult(i) = arr(i + 1)
+			Next
+		End If
+	End If
+	
+	CullPtFromArray = aResult
+	
+End Function
+
+
+Sub ArrayRemoveAt(ByRef arr, ByVal pos)
+	Dim i
+	If IsArray(arr) Then
+		If pos >= 0 And pos <= UBound(arr) Then
+			For i = pos To UBound(arr) - 1
+				arr(i) = arr(i + 1)
+			Next
+			ReDim Preserve arr(UBound(arr) - 1)
+		End If
+	End If
+End Sub

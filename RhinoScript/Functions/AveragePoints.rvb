@@ -1,0 +1,29 @@
+Function AveragePoints(aPts)
+	'Finds the average coordinates of an array
+	'of points.
+
+	Dim X, Y, Z
+	Dim i
+	
+	X = 0
+	Y = 0
+	Z = 0
+
+	For i=0 To UBound (aPts)
+			
+		'add all the X values
+		X = X+aPts(i)(0)
+	
+		'add all th Y values
+		Y = Y+aPts(i)(1)			
+	
+		'add all the Z values
+		Z = Z+apts(i)(2)
+	Next
+	
+	'Divide by the number of points to
+	'get the average  for each
+	'create the output array from the 3 averages
+	AveragePoints  =array(X/(UBound(aPts)+1), Y/(UBound(aPts)+1), Z/(UBound(aPts)+1))
+
+End Function

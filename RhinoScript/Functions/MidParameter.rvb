@@ -1,0 +1,16 @@
+Function MidParam(sSrf)
+	'find the midlle parameter pair of a surface
+	Dim uDom,VDom
+	
+	UDom = Rhino.SurfaceDomain(sSrf,0)
+	VDom = Rhino.SurfaceDomain(sSrf,1)
+	
+	Dim Umid, VMid
+	
+	UMid = UDom(0) + (0.5*(UDom(1)-Udom(0)))
+	
+	VMid =  VDom(0)+ (0.5*(VDom(1)-Vdom(0)))
+	
+	MidParam = array(UMid,Vmid)
+	
+End Function

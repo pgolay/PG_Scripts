@@ -1,0 +1,33 @@
+'//////////////////
+'//////////////////
+
+Function GetUnits
+  Dim intUnits, strUnits
+  intUnits = Rhino.UnitSystem
+  If intUnits = 0 Then
+    strUnits = "None"
+    ElseIf intUnits = 1 Then
+    strunits = "Microns"
+    ElseIf intUnits = 2 Then
+    strUnits = "Millimeters"
+    ElseIf intUnits = 3 Then
+    strUnits = "Centimeters"
+     ElseIf intUnits = 4 Then
+    strUnits = "Meters"
+     ElseIf intUnits = 5 Then
+    strUnits = "Kilometers"
+     ElseIf intUnits = 6 Then
+    strUnits = "Microinches"
+     ElseIf intUnits = 7 Then
+    strUnits = "Mils"
+     ElseIf intUnits = 8 Then
+    strUnits = "Inches"
+    ElseIf intUnits = 9 Then
+    strUnits = "Feet"
+    ElseIf intUnits =10 Then
+    strUnits = "Miles"
+    Else strUnits = "Unknown Units"
+  End If
+
+    GetUnits = strUnits
+End Function

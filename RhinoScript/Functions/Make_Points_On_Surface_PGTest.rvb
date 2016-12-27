@@ -1,0 +1,83 @@
+﻿Option Explicit
+'Script written by <insert name>
+'Script copyrighted by <insert company name>
+'Script version Saturday, October 13, 2007 8:46:14 PM
+
+Call Main()
+Sub Main()	
+	
+	'I added some arguments to the picking stage
+	'to filter for surfaces and polysurfaces (8+16)
+	'and allow pre-selection 
+	
+	Dim Glass_Extrd:Glass_Extrd = Rhino.GetObject("Pick Surface",8+16, True,True)
+	Dim NumVarU,NumVarv
+	NumVarU= 6
+	NumVarv = 1
+	
+
+	Dim arrGlass
+	
+	If Rhino.isPolysurface(Glass_Extrd) Then
+		arrGlass = Rhino.ExplodePolysurfaces(Glass_Extrd,True)
+	Else arrGlass = array(Glass_Extrd)'<<<<allow single surfaces
+	End If
+	
+	Rhino.EnableRedraw(False)'<<<<Faster this way
+	Dim i
+	For i = 0 To Ubound(arrGlass)
+		Dim PtsOnGlass,Wires
+		ReDim PtsOnGlass(NumVarU,NumVarV)
+		ReDim Wires(NumVarU-1,NumVarv-1)
+		Call Make_Points(PtsOnGlass,arrGlass(i),NumVarU,NumVarv)
+		Call Make_Wires(PtsOnGlass,Wires,NumVarU,NumVarv)
+	Next
+	Rhino.EnableRedraw(True)
+	
+End Sub
+
+Function Make_Points(My_arrPoints,Glass_Srf,NumVarU,NumVarv)
+	Dim i, j
+	Dim Point_UV(1)
+	Dim arrSurfaceU, arrSurfaceV
+	Dim Point_Location,Point_On_Surface
+  
+	'If Rhino.IsSurface(Glass_Srf) Then'<<<<<<Check this in the original sub
+		arrSurfaceU = Rhino.SurfaceDomain(Glass_Srf, 0)
+		arrSurfaceV = Rhino.SurfaceDomain(Glass_Srf, 1)
+	'	End If
+	
+	For i=0 To NumVarU
+		For j=0 To NumVarV	  
+			Point_UV(0)=((arrSurfaceU(1)-arrSurfaceU(0))/NumVarU)*(i)
+			Point_UV(1)=((arrSurfaceV(1)-arrSurfaceV(0))/NumVarV)*(j)		
+			My_arrPoints(i,j) = Rhino.EvaluateSurface(Glass_Srf,Point_UV)
+			Rhino.Addpoint My_arrPoints(i,j)
+		Next
+	Next
+	
+
+End Function
+
+Function make_Wires(pts4Wires,Wires,NumVarU,NumVarv)
+	Dim i,j,Pt1,Pt2,Pt3,Pt4, intIndex
+	
+	
+	For i=0 To NumVarU-1
+		For j=0 To NumVarV-1
+			pt1 = pts4Wires(i,j)
+			pt2 = pts4Wires(i+1,j)
+			pt3 = pts4Wires(i+1,j+1)
+			pt4 = pts4Wires(i,j+1)
+			Wires(i,j) = Rhino.AddSrfPt (array(Pt1,Pt2,Pt3,Pt4))
+			Rhino.ObjectColor Wires(i,j) , RGB(20,20,20)
+	    
+			Rhino.AddMaterialToObject Wires(i,j)
+			intIndex = Rhino.ObjectMaterialIndex(Wires(i,j))
+			Rhino.MaterialColor intIndex, RGB(20,20,20)
+ 
+		Next
+	Next
+   
+	Rhino.UnSelectAllObjects	
+End Function

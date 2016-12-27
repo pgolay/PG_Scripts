@@ -1,0 +1,44 @@
+﻿Function getTypeName(intType)
+	
+
+	Select Case intType
+		Case 0
+			getTypeName = "Unknown"
+		Case 1
+			getTypeName = "Point"
+		Case 2
+			getTypeName = "Point cloud"
+		Case 4
+			getTypeName = "Curve"
+		Case 8
+			getTypeName = "Surface"
+		Case 16
+			getTypeName = "Polysurface"
+		Case 32
+			getTypeName = "Mesh"
+		Case 256
+			getTypeName = "Light"
+		Case 512
+			getTypeName = "Annotation"
+		Case 4096
+			getTypeName = "Block instance"
+		Case 8192
+			getTypeName = "Dot"
+		case 16384
+			getTypeName = "Grip"
+		case 32768
+			getTypeName = "Detail"
+		case 65536
+			getTypeName = "hatch"
+		Case 131072
+			getTypeName = "Control object"
+		case 134217728
+			getTypeName = "Cage"
+		case 268435456
+			getTypeName = "Phantom"
+		case 536870912
+			getTypeName =	"Clipping plane"
+	End Select
+	
+	
+End Function

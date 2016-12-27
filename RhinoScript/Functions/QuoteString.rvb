@@ -1,0 +1,3 @@
+Function QuoteString(str)
+  QuoteString = Chr(34) & CStr(str) & Chr(34)
+End Function

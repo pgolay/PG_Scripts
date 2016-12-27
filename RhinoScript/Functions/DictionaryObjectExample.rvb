@@ -1,0 +1,8 @@
+Dim cars 
+Set cars = CreateObject("Scripting.Dictionary")
+cars.Add "a", "Alvis" 
+cars.Add "b", "Buick"
+cars.Add "c", "Cadillac"
+Response.Write "The value corresponding to the key 'b' is " & cars.Item("b")
+
+http://www.devguru.com/Technologies/vbscript/QuickRef/dictionary.html

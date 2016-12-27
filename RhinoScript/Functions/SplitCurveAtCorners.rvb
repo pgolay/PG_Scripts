@@ -1,0 +1,27 @@
+﻿Function SplitCurveAtCorners(sCrv, dblDeg)
+
+	Dim Segs: Segs = Rhino.PolyCurveCount(sCrv)
+	If Segs < 2 Then Exit Function
+	
+	Dim i, line1, line2, param
+	Dim n, aSplit()
+	n =0
+	
+	For i = 0 To Segs -2
+		
+		param = Rhino.CurveClosestPoint(sCrv,Rhino.CurveEndPoint(sCrv,i))
+		
+		line1 = Rhino.curvetangent (sCrv,param,i)
+		line2 =  Rhino.curvetangent (sCrv,param,i+1)
+		
+		If VectorAngle(Line1,Line2) > dblDeg Then
+			ReDim Preserve aSplit(n)
+			aSplit(n) = param
+			n = n + 1
+		End If
+		
+	Next
+	
+	SplitCurveAtCorners = Rhino.SplitCurve(sCrv, aSplit ,True)
+	
+End Function

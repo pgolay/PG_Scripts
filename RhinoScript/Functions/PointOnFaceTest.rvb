@@ -1,0 +1,138 @@
+Option Explicit
+'Script written by Pascal
+
+'Script version Friday, July 15, 2011 
+
+'Rhino.AddStartupScript Rhino.LastLoadedScriptFile()
+'Rhino.AddAlias " ", "_NoEcho _-Runscript ( )"
+
+Call Main()
+Sub Main()
+	
+	'Select the trimmed face
+	dim sFace: sface = Rhino.GetObject("Select surface", 8, True,True)
+	if isNull(sface) then exit sub
+	
+	'get the outer border curves in an array
+	dim aCrvs: aCrvs = Rhino.DuplicateSurfaceBorder(sFace, 0)
+	If not isArray(aCrvs) then exit sub
+	
+	
+	'Build a 'selID'  string to use in Rhino.Command to select the curves
+	dim sCrvs, crv
+	For each Crv in aCrvs
+		sCrvs = sCrvs & " _SelID " & crv
+	Next
+	
+	
+	
+	'Use the new function to fins a 3d point that is on the trimmed face
+	'using 64 samples. 
+	dim X: X = getPtOnface(sface,64)
+	
+	'if there is no result with 64, then use 128 samples
+	'this is stupid and slow, we'll make a better version soon
+	'but we need a little more functionality in v5 RhinoScript
+	If not isArray(X) then
+		X = GetPtOnface(sface,128)
+	End If
+	
+	
+	'Untrim the face
+	Rhino.Command "_UntrimAll"
+	If rhino.LastCommandResult <> 0 then exit sub
+	
+	
+	're-Split the surface with the curves
+	
+	Rhino.Command "_Split" & SCrvs & " _Enter"
+	
+	'Verify that is worked
+	If Rhino.LastCommandResult <> 0 then exit sub
+	
+	'delete the splitting curves
+	Rhino.DeleteObjects aCrvs
+	
+	'Collect the split output in an array
+	dim aLast: aLast = Rhino.LastCreatedObjects()
+	if not isArray(aLast) then exit sub
+	
+	' Delete any faces that do not
+	'have the 3d test point on them.
+	dim face
+	For each face in alast
+		if rhino.IsSurface(face) then
+			if not Rhino.PointCompare(X, Rhino.BrepClosestPoint(face,X)(0)) then
+				Rhino.DeleteObject face
+			End If
+		end if
+	Next
+	
+	
+	
+End Sub
+
+Function getPtOnFace(sFace, num)
+
+	'Get a grid of paramwter values on the surface from the
+	'ParamGrid frunction, below.
+	
+	dim aPar:aPar = ParamGrid(sFace,num)
+	dim aParam, test
+
+	'evaluate the surfave at each parameter pair to get a 3d point
+	'then compare this 3d point with its closest point on thye trimmed face'
+	'If the points are the same, the point lies on the trimmed face and we keep that
+	'point and stop testing. The function returns the 3d pointy
+	For each aParam in aPar
+		test = Rhino.EvaluateSurface(sFace, aParam)
+		If Rhino.PointCompare(test, Rhino.BrepClosestPoint( sFace, test)(0)) then
+			GetPtOnFace = test
+			Exit for
+		End if
+	Next
+			
+End Function
+
+Function ParamGrid(sSrf,num)
+	
+	Dim uDom,VDom, n
+	
+	
+	n = (num+1)^2
+	dim arr
+	redim arr(n-1)
+	
+	'get the surface domains
+	UDom = Rhino.SurfaceDomain(sSrf,0)
+	VDom = Rhino.SurfaceDomain(sSrf,1)
+	
+	Dim Umid, VMid, domU, domV, i, j, r
+	
+	'get the domain intervals in each direction
+	domV = UDom(1) - Udom(0)
+	domU = VDom(1) - Vdom(0)
+	
+	r = 0
+	dim intU, intV
+	intU = domU/num
+	intv = domV/num
+	
+	'Iterate through the parameters in each direction,
+	'building a sample grid of parameter pairs. The function
+	'output is an array of paremeter pairs.
+	
+	For i = 0 to num 
+		
+		UMid = UDom(0) + (i*intU)
+			
+		for j = 0 to num 
+			VMid =  VDom(0)+ (j*intV)
+			arr(r) =  array(UMid,VMid)
+			r = r + 1
+		next 
+	next
+	
+	ParamGrid = arr
+	
+End Function

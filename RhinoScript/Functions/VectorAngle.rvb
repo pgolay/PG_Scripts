@@ -1,0 +1,30 @@
+
+Function VectorAngle(Vec1, vec2)
+	
+	Vec1 = Rhino.VectorUnitize(Vec1)
+	Vec2 = Rhino.VectorUnitize (Vec2)
+	
+	Dim DP: DP = Vec1(0) * Vec2(0) + Vec1(1) * Vec2(1) +  Vec1(2) * Vec2(2)
+	
+	If DP  > .999999 then
+		VectorAngle = 0
+	ElseIf DP < -.999999 then  
+		VectorAngle = Rhino.ToDegrees(Rhino.Pi())
+	Else
+		VectorAngle = arcos(DP, False)
+	End If
+	
+End Function
+
+
+
+Function Arcos(dblAng, blnRad)
+	'dblAng input in radians
+	
+	If BlnRad = True then 'output in radians
+		Arcos = Atn(-dblAng / Sqr(-dblAng * dblAng + 1)) + 2 * Atn(1)
+	Else 'output in degrees
+		Arcos = Rhino.ToDegrees(  Atn(-dblAng / Sqr(-dblAng * dblAng + 1)) + 2 * Atn(1))
+	End if
+	
+End Function

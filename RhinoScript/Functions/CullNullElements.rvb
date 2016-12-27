@@ -1,0 +1,13 @@
+﻿Sub CullNullElements(ByRef arr)
+	If IsArray(arr) Then
+		Dim i : i = 0
+		Dim j : j = -1
+		For i = 0 To UBound(arr)
+			If Not IsNull(arr(i)) Then
+				j = j + 1
+				arr(j) = arr(i)
+			End If
+		Next
+		ReDim Preserve Array(j)
+	End If
+End Sub

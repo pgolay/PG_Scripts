@@ -1,0 +1,12 @@
+﻿Sub ScalePointArray( ByRef aPts,aScale, abase)
+
+	Dim Plane:Plane = Rhino.ViewCPlane' also modify this to take a plane as argument
+	plane(0) = aBase
+	Dim mat:	mat = Rhino.XFormScale(Plane, aScale(0),aScale(1), aScale(2))
+	Dim apt, n
+	n = 0
+	For n= 0 To uBound(apts)
+		apts(n) = PointTransform  (aPts(n), mat)	
+	Next
+
+End Sub

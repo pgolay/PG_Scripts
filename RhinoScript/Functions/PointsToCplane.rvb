@@ -1,0 +1,36 @@
+﻿Function PointsToCplane(arrPts, Plane)
+
+	Dim i, arrPt
+
+	i = 0
+
+	For Each arrPt In arrPts
+		ReDim Preserve arrXform(i)
+		arrXform(i) = Rhino.XFormWorldToCPlane(arrPt, plane)
+		i = i + 1
+	Next
+
+	If IsArray(arrXform) Then
+		PointsToCplane = arrXForm
+	End If
+
+End  Function
+
+
+Function PointsToWorld(arrPts, Plane)
+
+	Dim i, arrPt
+
+	i = 0
+
+	For Each arrPt In arrPts
+		ReDim Preserve arrXform(i)
+		arrXform(i) = Rhino.XFormCplaneToWorld(arrPt, plane)
+		i = i + 1
+	Next
+
+	If IsArray(arrXform) Then
+		PointsToWorld = arrXForm
+	End If
+
+End  Function

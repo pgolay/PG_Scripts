@@ -1,0 +1,48 @@
+﻿Function LineLineInt(Line1,Line2)
+
+	Dim aPlane(3), Coplanar
+	Coplanar = True
+		
+	aPlane(0) = Rhino.CurveStartPoint(Line1)
+	aPlane(1) = Rhino.CurveEndPoint(Line1)
+	aPlane(2) = Rhino.CurveStartPoint(Line2)
+	aPlane(3) = Rhino.CurveEndPoint(Line2)
+		
+	Dim plane: Plane = Rhino.PlaneFitFromPoints(aPlane)
+		
+	If Not Rhino.IsCurveInPlane(Line1,Plane) Or _
+		Not Rhino.IsCurveInPlane(Line2,Plane) Then
+		coplanar = False
+			
+	End If
+		
+	If Coplanar = True Then
+		
+		Dim aStart: astart = Rhino.CurveStartPoint(Line1)
+		Dim aEnd: aEnd = Rhino.CurveEndPoint(Line1)
+
+		Dim Plane1: Plane1 = PlaneFromLinePlane(Line1,Plane)
+		Dim Plane2: PLane2 = PlaneFromLinePlane(Line2,Plane)
+	
+		Dim aPt: aPt = Rhino.IntersectPlanes(PLane, Plane1, Plane2)
+		
+	Else 	MsgBox "Lines must be coplanar."
+	End If
+	
+	LineLineInt = aPt
+	
+End Function
+
+
+Function PlaneFromLinePlane(Line,Plane)
+	
+	Dim aStart: aStart = Rhino.CurveStartPoint(Line)
+	Dim aEnd: aEnd = Rhino.CurveEndPoint(Line)
+	Dim VecX: VecX = Rhino.VectorCreate(aEnd,aStart)
+	Dim aZ: aZ = Rhino.PointAdd(aStart,Plane(3))
+	Dim vecY: vecY = Rhino.VectorCreate(aStart,aZ)
+	Dim result:	Result  = Rhino.PlaneFromFrame(aStart,vecX, vecY)
+
+	PlaneFromLinePlane = Result
+	
+End Function

@@ -1,0 +1,46 @@
+﻿Function SortPointsByAxis(aPts, intAxis)
+
+	
+	Dim temp, aSort(), n, i, aTest(), aAxis()
+	n = 0
+	
+	For i = 0 To UBound(aPts)
+		
+		'Make an array of the Axis coordinates to sort later
+		ReDim Preserve aAxis(n)
+		aAxis(n) = aPts(i)(intAxis)'the points Axis coordinate (X, Y or Z)
+	
+		
+		'make an array element with 
+		'the point's Axis(X, Y or Z) coordinate and its index:
+		ReDim Preserve aTest(n)
+		aTest(n) = array(aPts(i)(intAxis), i)
+		n = n +1
+	Next
+
+	'sort the axis coordinates in ascending order:
+	Dim aAxisSort: aAxisSort  = Rhino.SortNumbers(aAxis, True)
+	
+	Dim Y ' an element in aAxisSort
+	aAxisSort = Rhino.CullDuplicateNumbers (aAxisSort)
+	n = 0
+	Dim test ' an element in aTest 
+	
+	For Each y In aAxisSort
+		
+		For i = 0 To UBound(aPts) 
+		
+
+			If y = aPts(i)(intAxis) Then
+				ReDim Preserve aSort(n)
+				aSort(n) = aPts(i)
+				n = n +1
+			End If
+			
+		Next
+	Next
+	
+	Dim result:Result = aSort
+	
+	SortPointsByAxis = Result
+End Function

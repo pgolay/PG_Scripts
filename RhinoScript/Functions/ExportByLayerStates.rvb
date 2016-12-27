@@ -1,0 +1,173 @@
+﻿Option Explicit
+
+'Script version Friday, October 14, 2011
+'Script written by Pascal
+
+''Rhino.AddStartUpScript Rhino.LastLoadedScriptFile
+''Rhino.AddAlias "ExportByLayerStates", "_NoEcho _-RunScript (ExportByLayerStates)"
+
+private OldExt, oldpath
+
+
+if isEmpty(oldExt) then
+	OldExt = "3dm"
+End If
+
+
+if isEmpty(oldPath) then
+	OldPath = Rhino.WorkingFolder()
+End If
+
+'Call ExportByLayerStates()
+
+Sub ExportByLayerStates()
+	
+	Dim aStates: aStates = LayerStates()
+	If not isArray(aStates) then exit sub
+	Dim Bound: Bound = UBound (aStates)
+	dim aValues
+	redim aValues(Bound)
+	
+	dim i, n
+	i = 0
+	
+	for n = 0 to Bound 
+		aValues(n) = 0
+	Next
+	
+	dim aExpt: aExpt = Rhino.CheckListBox(aStates,aValues, "Layer states to export", "Export as Layer States")
+	If not isArray(aExpt) then Exit sub
+	
+	For n = 0 to Bound
+		if aExpt(n) = True then
+			redim Preserve states_to_export(i)
+			states_to_export(i) = aStates(n)
+			i = i + 1
+		End If
+	Next
+	if i = 0 then exit sub
+	
+	dim aExt: aExt = array("3dm","igs","stp","sat")
+	
+	dim ext: ext = Rhino.GetString("Format to export?", OldExt, aExt)
+	if isNull(ext) then exit sub
+	if WhereInArray(ext, aExt,1) = -1 then exit sub
+	
+	
+	dim sPath: sPath = Rhino.BrowseForFolder(oldPath,"Set target folder", "Export as Layer States")
+	
+	If isNull(sPath) then exit sub
+	oldPath = sPath
+	
+	
+	dim tempState: tempState = "temp_Export_Layer_Crnt"
+	Rhino.command "_~-LayerStateManager _Save " & tempState & " _Enter", False
+	
+	oldExt = lcase(ext)
+	
+	Rhino.EnableRedraw False
+	
+	For i = 0 to UBound(states_to_export)
+		
+		ExportState states_to_export(i), sPath, ext
+		
+	Next
+	
+	Rhino.command "_~-LayerStateManager _Restore " & tempState & " _Delete " &tempState & " _Enter", false
+	
+	Rhino.EnableRedraw true
+	
+End Sub
+
+
+
+
+sub ExportState(state, spath, ext)
+	
+	Rhino.command "_~-LayerStateManager _Restore " & State  & " _Enter", false
+	
+	Rhino.SelectObjects(Rhino.NormalObjects())
+	
+	dim sExport: sExport =  chr(34) & sPath & state & "." & ext & chr(34)
+	
+	Rhino.Command "-_Export " & sExport & " _Enter"
+	
+	Rhino.UnselectAllObjects()
+	
+	
+End Sub
+
+
+Function WhereInArray(item,arr, intCase)
+	'Finds the locaton of a string in an array of strings
+	'if the result is -1 then the item does not
+	'appear in tha array
+	'intCase 0 = Case Sensitve
+	Dim sItem, n, i
+	n = False
+	WhereInArray = -1
+
+		
+	For i = 0 To UBound(arr)
+			
+		if intCase = 0 then
+			If arr(i) = Item Then
+				
+				WhereInArray = i
+				n = True
+				Exit For
+		
+				
+			End If
+			
+		else 
+			
+			If lCase(arr(i)) = LCase(Item) Then
+				
+				WhereInArray = i
+				n = True
+				Exit For
+	
+			End If
+			
+		end if
+			
+	Next
+	
+
+	If n = False Then WhereInArray = -1
+	
+End Function
+
+
+
+Function LayerStates()
+	
+	
+	Rhino.Command "_-LayerStatemanager _List _Enter"
+	dim str:	str = Rhino.CommandHistory()
+	
+	dim intStart, intEnd
+	intEnd = inStrRev(str,"Choose layer state option")
+	str = Left(str,intEnd-1)
+	intEnd = inStrRev(str,"Choose layer state option")
+	str = Left(str,intEnd-1)
+	intEnd = inStrRev(str,"Choose layer state option")
+	str = Right(str,Len(Str)-(intEnd-1))
+	dim arr: arr = Split(str, chr(13))
+
+	
+	dim i, n, aStates()
+	n = 0
+	for i = 1 to UBound(arr)
+		
+		If arr(i)<> "" then
+			redim preserve aStates(n)
+			aStates(n) = arr(i)
+			n = n + 1
+		End if
+		
+	Next
+	LayerStates = aStates
+	
+End Function

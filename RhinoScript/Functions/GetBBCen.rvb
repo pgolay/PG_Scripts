@@ -1,0 +1,6 @@
+﻿Function GetBBCen(aObj)
+	
+	Dim aBB: aBB = Rhino.BoundingBox(aObj)
+	GetBBCen = AveragePoints(aBB)
+	
+End Function

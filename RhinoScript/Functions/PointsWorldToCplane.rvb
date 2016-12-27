@@ -1,0 +1,44 @@
+﻿
+'//////////////////////////////////
+'//////////////////////////////////
+
+
+
+Function WorldToCplanePts(arrPts)
+
+	Dim arrPlane, i, Result
+	arrPlane = Rhino.ViewCplane
+	For i = 0 To UBound (arrPts)
+
+		Result = Rhino.XformWorldToCplane (arrPts(i), arrPlane)
+		ReDim Preserve arrOutput(i)
+		arrOutput(i) = Result
+	Next
+
+	WorldToCplanePts = arrOutput
+
+End Function
+
+
+'//////////////////////////////////
+'//////////////////////////////////
+
+
+Function CplaneToWorldPts(arrPts)
+
+	Dim arrPlane, i, Result
+	arrPlane = Rhino.ViewCplane
+	For i = 0 To UBound (arrPts)
+
+		Result = Rhino.XformCPlaneToWorld (arrPts(i), arrPlane)
+		ReDim Preserve arrOutput(i)
+		arrOutput(i) = Result
+	Next
+
+	CplaneToWorldPts = arrOutput
+
+End Function
+
+
+'//////////////////////////////////
+'//////////////////////////////////

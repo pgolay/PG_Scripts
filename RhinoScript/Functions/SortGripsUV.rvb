@@ -1,0 +1,29 @@
+﻿Function SortSurfacePointsUV(sSrf)
+	'Sorts grips into a two dimensional (U and V) array of indices
+	
+	If not Rhino.ObjectGripsOn(sSrf) then Rhino.EnableObjectGrips sSrf
+	
+	dim aCount: aCount = Rhino.SurfacePointCount(sSrf)
+	Dim intU, intV
+
+	intU = aCount(0)-1
+	intV = aCount(1)-1
+	dim  u, v
+	
+	dim aIdx, i
+	i = 0
+	redim aIdx(intU,intV)
+	
+	For u = 0 To intU
+
+		For v = 0 To intV
+			aIdx(U,V) = i
+			i = i + 1
+		Next
+
+	Next
+
+	SortSurfacePointsUV = aIdx
+
+
+End Function

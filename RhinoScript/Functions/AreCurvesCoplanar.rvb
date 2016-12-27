@@ -1,0 +1,33 @@
+﻿
+Function AreCurvesCoplanar(aCrvs)
+
+	Dim X, sCrv, n, CrvPlane
+	n= 0
+	X = True
+	
+	
+	For Each sCrv In aCrvs 
+		If Not Rhino.IsCurvePlanar(sCrv) Then
+			X= False
+			Exit For
+			
+		Else
+			If n = 0 Then
+				crvPlane = Rhino.CurvePlane(sCrv)
+				n = n + 1
+			Else 
+				If Not Rhino.IsCurveInPlane(sCrv, crvPlane)Then
+					X = False
+					Exit For
+				End If
+				
+			End If
+			
+		End If
+		
+	Next
+	
+	AreCurvesCoplanar = X
+	
+	
+End Function

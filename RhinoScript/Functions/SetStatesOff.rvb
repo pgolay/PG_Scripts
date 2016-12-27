@@ -1,0 +1,11 @@
+﻿Function SetStatesOff(arr)
+	
+	Dim Bound: Bound = UBound(arr)
+	Dim result,i
+	redim result(Bound)
+	For i = 0 to Bound
+		Result(i) = 0
+	Next
+	StatesOff = Result
+	
+End Function

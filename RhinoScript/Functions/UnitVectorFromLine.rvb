@@ -1,0 +1,8 @@
+﻿
+
+Function UnitVectorFromLine(sLine)
+
+	
+	UnitVectorFromLine = Rhino.VectorUnitize(Rhino.VectorCreate(Rhino.CurveEndPoint(sLine),Rhino.CurveStartPoint(sLine)))
+
+End Function

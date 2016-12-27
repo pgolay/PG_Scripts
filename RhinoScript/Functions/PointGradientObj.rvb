@@ -1,0 +1,21 @@
+﻿Function PointGradientObj(aPt,sObj,Max,Min)
+	
+	'dtermines if a point should be considered based on how far it
+	'is from an object- the farher it Is, up To a maximum, the less likely 
+	'it Is To be considered.
+	'set a number, Num, between zero and 1- the farher from Sobj the point
+	'lies, then the closer to 1 the number is. Us a proprtion of the distance
+	'to max, and normalize, basically.
+	'Then generate a random number, rnd, between 0 and 1. If the number lies between
+	'Num and 1 then the function returns true, otherwise false.
+	
+	PointGradientObj = False
+	If dist <= max Then
+		Dim Dist: dist = Rhino.Distance(Rhino.BrepClosestPoint(sObj,aPt),aPt)
+		Dim Num: Num = Dist/Max
+	
+		Dim testRnd: testRnd = rnd
+		If Num < rnd Then PointGradientObj = True
+	End If
+	
+End Function

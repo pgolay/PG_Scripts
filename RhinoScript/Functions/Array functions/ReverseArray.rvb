@@ -1,0 +1,20 @@
+﻿
+Sub ReverseArray(ByRef arrIn)
+	'use Call ReverseArray(arr), apparently
+	Dim n, UB, i, temp()
+
+	n = 0
+	UB = UBound(arrIn)
+
+	For i = 0 To UB
+		ReDim Preserve temp(i)
+		temp(i) = arrIn(i)
+	Next
+	
+	For i = UB To 0 Step  -1
+		ReDim Preserve arrIn(n)
+		arrIn(n) = Temp(i)
+		n = n + 1
+	Next
+	'	ReverseArray = arrIn
+End Sub

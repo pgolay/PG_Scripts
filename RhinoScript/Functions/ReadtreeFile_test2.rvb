@@ -1,0 +1,158 @@
+﻿Option Explicit
+'Script written by Pascal
+'RMA
+'Script version Thursday, December 06, 2007
+
+Call Main()
+Sub Main()
+	readtextfile
+End Sub
+
+
+Sub ReadTextFile
+
+	Dim objFSO, objFile, strFileName, strLine
+
+	Const ForReading = 1
+
+	strFileName = Rhino.OpenFileName("Open", "Text Files (*.txt)|*.txt||")
+
+	If IsNull(strFileName) Then Exit Sub
+
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+
+	Set objFile = objFSO.OpenTextFile(strFileName, ForReading)
+	Dim intlen, int, temp,temp2, intQ
+	Dim aCrvpts(), i, n, q, atemp()
+	Dim dblCnt
+	n = 0
+	i = 0
+	q = 0
+	int = -1
+	
+	While Not objFile.AtEndOfStream
+	
+		strLine = objFile.ReadLine
+
+		If Left(strLine,2) = "$$" Then
+			
+			If i > q Then ' keep track of the largest number of rings
+				q = i
+			End If
+			
+			If len(strLine) > 2 Then
+				i = 0
+				Intlen = len(strLine)
+			
+				dblCnt = CDbl(right(strLine,intlen-2))
+				
+				If Not isNumeric(dblCnt) Then
+					
+					MsgBox "The file is not correctly formatted for this script" _
+						&vbNewLine & "Each set of rings at a given level must" _
+						&vbNewLine & "be preceded by a line containing $$ folowed" _
+						&vbNewline & "by the Z value of the rings."
+				
+					Exit Sub
+				Else int = int + 1
+				End If
+			End If
+			
+		
+		ElseIf Left(strLine,1) = chr(34) Then 
+		
+			'	On Error Resume Next
+			
+			Do
+
+				intLen = len(strLine)
+				
+				If intLen<6 Then Exit Do
+				
+				intQ = inStr(strLine,Chr(34))'the first " in the string
+				strLine = right(strLine,intlen-intQ)'the string less the first "
+				intLen = len(strLine)'length of the shortened string
+				intQ = inStr(strLine,Chr(34))'the next "
+				
+				temp =left(strLine, (intLen-(intLen-intQ)-1))'the text to the left of the first "
+			
+				If temp<>"" Then
+					
+					temp = temp & "," &dblCnt & " "' add a comma and the int for Z and a space
+				
+					temp2 = temp2 & temp 'add up the output string till it's a whole line's worth
+				
+					strLine = right(strLine, intLen-intQ)' shorten the input string 
+				
+				End If
+				
+			Loop Until intLen < 6
+			
+			ReDim Preserve atemp(i)' add the output string to an array
+			atemp(i) = temp2
+			i = i +1
+		End If
+			
+			
+		temp = Null
+		temp2 = Null
+		ReDim Preserve aCrvPts(int) 'add the array of output strings to a larger array
+		aCrvPts(int) = atemp
+
+		'	Rhino.Print strLine
+
+		Wend
+
+		objFile.Close
+
+		Set objFSO = Nothing
+	
+		'\\\\\\\\\\\\\\\\\\\\
+		'\\\\\\\\\\\\\\\\\\\\
+	
+		If isUpperBound(aCrvpts) Then
+		
+			Rhino.EnableRedraw(False)
+	
+			i = 0
+			n = 0
+			Dim d, aLoftCrv()
+			For i = 0 To q 'q = the size of the largest set of output strings
+				d = 0
+		
+				For n = 0 To int
+		
+					If Ubound(aCrvPts(n))>=i Then
+						temp = Rhino.Str2PtArray(aCrvPts(n)(i))
+						temp2 = array(temp(0), temp(3),temp(1),temp(2),temp(0))
+
+						ReDim Preserve aLoftCrv(d)
+						aLoftCrv(d) = Rhino.AddInterpCurveEx(temp2, 3,0)
+						d = d +1
+					End If
+	
+				Next
+				Rhino.AddLoftSrf(aLoftCrv)
+			Next
+	
+			Rhino.EnableRedraw(True)
+		
+		End If
+	
+	End Sub
+
+Function IsUpperBound(ByRef arr)
+
+	IsUpperBound = False
+
+	If IsArray(arr) Then
+
+		On Error Resume Next
+
+		UBound arr
+
+		If Err.Number = 0 Then IsUpperBound = True
+
+	End If
+
+End Function

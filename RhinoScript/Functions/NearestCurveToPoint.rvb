@@ -1,0 +1,25 @@
+﻿Function nearsetCurvetoPOint(aCrv, apt)
+	Dim Dist, TestDist, n, q, sCrv, testPt
+	n = 0
+	
+	For Each sCrv In aCrv
+		
+		TestPt = Rhino.EvaluateCurve(sCrv,Rhino.CurveClosestPoint(sCrv,aPt))
+		Dist = Rhino.Distance(apt, testPt)
+		
+		If n = 0 Then
+			testDist = Dist	
+			Q = SCrv
+		Else
+			If Dist < TestDist Then
+				testDist = Dist
+				Q = sCrv
+			End If	
+		End If
+		
+		n = n + 1
+	Next
+	
+	GetNearestCurve = Q
+	
+End Function

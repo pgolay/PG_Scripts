@@ -1,0 +1,119 @@
+Sub MatchProperties(sObj1, sObj2)
+	'needs to match material properties and user data as well
+	'To be useful in general
+
+	Rhino.ObjectLayer sobj1,Rhino.ObjectLayer(sObj2)
+	
+	If Not isnull(Rhino.ObjectName(sObj2)) Then
+		Rhino.ObjectName sObj1,Rhino.ObjectName(sObj2)
+	End If
+	
+	Rhino.ObjectColorSource sObj1,Rhino.ObjectColorSource(sObj2)
+	Rhino.ObjectColor sObj1,(Rhino.ObjectColor(sobj2))
+	
+	Rhino.ObjectLinetypeSource sObj1,Rhino.ObjectLinetypeSource (sObj2)
+	Rhino.ObjectLinetype sObj1,Rhino.ObjectLinetype(sObj2)
+	
+	Rhino.ObjectPrintColorSource sobj1, Rhino.ObjectPrintColorSource(sobj2)
+	Rhino.ObjectPrintColor sObj1, Rhino.ObjectPrintColor(sObj2)
+	
+	Rhino.ObjectPrintWidthSource sobj1, Rhino.ObjectPrintWidthSource(sobj2)
+	Rhino.ObjectPrintWidth sobj1, Rhino.ObjectPrintWidth(sObj2)
+	
+	Rhino.ObjectURL sObj1, Rhino.ObjectURL (sObj2)
+	
+	If Rhino.ObjectGripsOn(sObj1) Then Rhino.EnableObjectGrips(sObj2)
+	
+	Dim aGroups: aGroups =	Rhino.ObjectGroups (sObj2)
+	Dim SGrp
+	If isArray(aGroups) then 
+		For Each sGrp In aGroups
+			Rhino.AddObjectToGroup sObj1,sGrp
+		Next
+	End If
+	
+
+End Sub
+
+Function GetObjAttributes(sObj)
+	'needs to match material properties and user data as well
+	'To be useful in general
+	Dim aAtt(12)
+	
+	
+	aAtt(0) =	Rhino.ObjectLayer (sobj)
+	
+	If Not isNull(Rhino.ObjectName(sObj)) Then
+		aAtt(1) =	Rhino.ObjectName (sObj)
+	Else
+		aAtt(1) = "*"
+	End If
+	
+	aAtt(2) = Rhino.ObjectColorSource (sObj)
+	aAtt(3) = Rhino.ObjectColor (sObj)
+
+	
+	aAtt(4) = Rhino.ObjectLinetypeSource (sObj)
+	aAtt(5) = Rhino.ObjectLinetype (sObj)
+	
+	aAtt(6) = Rhino.ObjectPrintColorSource (sobj)
+	aAtt(7) = Rhino.ObjectPrintColor (sObj)
+	
+	aAtt(8) = Rhino.ObjectPrintWidthSource (sobj)
+	aAtt(9) = Rhino.ObjectPrintWidth (sobj)
+	
+	aAtt(10) = Rhino.ObjectURL (sObj)
+	
+	If Rhino.ObjectGripsOn(sObj) Then
+		aAtt(11) = 1
+	Else
+		aAtt(11) = 0
+	End If
+	
+	
+	Dim aGroups: aGroups =	Rhino.ObjectGroups (sObj)
+	
+	If isArray(aGroups) Then
+		aAtt(12) = aGroups
+	Else
+		aAtt(12) = "*"
+	End If
+	
+	
+	GetObjAttributes = aAtt
+
+End Function
+
+
+Sub ApplyAttributes(sobj, aAtt)
+	
+	Rhino.ObjectLayer sobj, aAtt(0)
+	If aAtt(1) <>"*" Then Rhino.ObjectName sObj, aAtt(1)
+	
+	Rhino.ObjectColorSource sObj,aAtt(2)
+	Rhino.ObjectColor sObj,aAtt(3)
+
+	Rhino.ObjectLinetypeSource sObj,aAtt(4)
+	Rhino.ObjectLinetype sObj,aAtt(5)
+	
+	Rhino.ObjectPrintColorSource sobj,	aAtt(6)
+	Rhino.ObjectPrintColor sObj,aAtt(7)
+	
+	Rhino.ObjectPrintWidthSource sobj,aAtt(8)
+	Rhino.ObjectPrintWidth sobj,aAtt(9)
+	
+	Rhino.ObjectURL sObj,aAtt(10) 
+	If aAtt(11) = 1 Then Rhino.ObjectGripsOn sObj
+
+	Dim aGroups: aGroups =	aAtt(12)
+	If isArray(agroups) Then
+		Dim SGrp
+		If isArray(aGroups) Then 
+			For Each sGrp In aGroups
+				Rhino.AddObjectToGroup sObj,sGrp
+			Next
+		End If
+	End If
+	
+	
+End Sub

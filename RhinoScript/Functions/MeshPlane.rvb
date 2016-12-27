@@ -1,0 +1,6 @@
+﻿Function MeshPlane(sMesh)
+	
+	Dim aPts: aPts = Rhino.MeshVertices(smesh)
+	MeshPlane = Rhino.PlaneFitFromPoints(aPts)
+	
+End Function

@@ -1,0 +1,8 @@
+﻿
+
+Function RandomDouble(max,min,IntRound)
+		
+	'Randomize
+	RandomDouble = round((min + (rnd*(max-min))),intRound)
+			
+End Function

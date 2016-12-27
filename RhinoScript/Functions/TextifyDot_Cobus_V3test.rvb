@@ -1,0 +1,55 @@
+﻿option explicit
+
+
+Private dblTextHeight
+If IsEmpty(dblTextHeight) Then
+	dblTextHeight = 1
+End If
+
+'Call DotToTextObjt()
+
+Sub   DotToTextObj()
+   
+	Dim arrDots, arrBln ,strDelete, arrSelDot
+
+	arrSelDot =Rhino.GetObjects("Select dots to convert",8192,,True)
+	arrBln = Array("Yes", "No")
+
+	If Not IsArray(arrSelDot) Then
+		MsgBox "No Dots are in the file"
+		Exit Sub
+  
+	Else
+		dim Height: Height = Rhino.GetReal("Text height:", dblTextHeight)
+		If Not IsNull(Height) Then
+			dblTextHeight = Height
+		Else Exit Sub
+		End If
+     
+		strDelete = Rhino.GetString("Delete Dots?", "Yes", arrBln) 
+		If IsNull(strDelete) Then
+			Exit Sub
+		End If
+     
+		Rhino.EnableRedraw(False) 
+		dim strDot, strText, arrPt, strPt
+		For Each strDot In arrSelDot
+			strText= Rhino.TextDotText(strDot)
+			If IsEmpty(strText) Then
+				Exit For
+			End If
+			arrPt = Rhino.TextDotPoint(strDot)
+			strPt = Rhino.Pt2str(arrpt)
+			Rhino.Command "! -_TextObject _GroupOutput=_Yes _Output=_Curves _Height=" _
+				& CStr(dblTextHeight) &" " &Chr(34) &strText &Chr(34)_
+				&" " &strpt &" " 
+			'Rhino.AddText strText,arrPt,dblHeight
+			If lcase(StrDelete) = "yes" Then
+				Rhino.DeleteObject strDot
+			End If
+		Next
+		
+		Rhino.EnableRedraw(True)
+      
+	End If
+End Sub

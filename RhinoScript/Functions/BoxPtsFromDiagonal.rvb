@@ -1,0 +1,45 @@
+﻿Function BoxFromDiag(aPts)
+	'Calculates box corner points from two diagonal points
+	dim aTemp(7)
+	dim i
+	dim minx,Maxx,MinY,MaxY,MinZ,MaxZ
+
+	if aPts(0)(2)>aPts(1)(2) then
+		Minz = aPts(1)(2)
+		maxZ = aPts(0)(2)
+	else
+		Minz = aPts(0)(2)
+		maxZ = aPts(1)(2)
+	End If
+
+	If aPts(0)(1) > aPts(1)(1) then
+		MinY = aPts(1)(1)
+		maxY = aPts(0)(1)
+	else
+		Miny = aPts(0)(1)
+		maxY =  aPts(1)(1)
+	End If
+	
+	If aPts(0)(0) > aPts(1)(0) then
+		Minx = aPts(1)(0)
+		MaxX = aPts(0)(0)
+	else
+		Minx = aPts(0)(0)
+		MaxX =  aPts(1)(0)
+	End If
+	
+	
+	
+	atemp(0) = array(MinX,MinY,MinZ)
+	atemp(1) = array(MaxX,MinY,MinZ)
+	atemp(2) = array(MaxX,MaxY,MinZ)
+	atemp(3) = array(MinX,MaxY,MinZ)
+	atemp(4) = array(MinX,MinY,MaxZ)
+	atemp(5) = array(maxX,MinY,MaxZ)
+	atemp(6) = array(MaxX,MaxY,mAXZ)
+	atemp(7) = array(MinX,MaxY,MaxZ)
+	
+	BoxFromDiag = aTemp
+	
+	
+End Function

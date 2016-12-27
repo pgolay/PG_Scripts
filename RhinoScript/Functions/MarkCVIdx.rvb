@@ -1,0 +1,27 @@
+﻿Option Explicit
+'Script written by Pascal
+'Script version Tuesday, January 05, 2010 
+
+'Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+'Rhino.AddAlias "","noEcho _-Runscript ()"
+
+Call MarkCVIdx()
+Sub MarkCVIdx()
+	
+	Dim sSrf: sSrf = Rhino.GetObject("Select curve or surface",12,True)
+	If isNull(sSrf) then exit sub
+	Rhino.EnableObjectgrips sSrf
+	
+	Dim aLoc: aLoc = Rhino.ObjectGripLocations(sSrf)
+	
+	Dim i
+	
+	Rhino.EnableRedraw False
+	For i = 0 to uBound(aLoc)
+		Rhino.addtextDot i,aloc(i)
+	Next
+	
+	Rhino.EnableObjectgrips sSrf, False
+	Rhino.EnableRedraw True
+	
+End Sub

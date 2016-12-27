@@ -1,0 +1,79 @@
+
+
+Function OctreeBB(aBB)
+
+	'an array of 8 arrays of 8 points defining the corners
+	'of the octree boxes
+	Dim aOrder: aOrder =  Array(6,7,4,5,2,3,0,1)
+	
+	Dim aCent: aCent = Array((aBB(0)(0) + aBB(6)(0))/2, (aBB(0)(1) + aBB(6)(1))/2, (aBB(0)(2) + aBB(6)(2))/2)
+	Rhino.AddPoint aCent
+	Dim i, aPts
+	Dim aTemp(7)
+		
+	For i = 0 To 7
+			
+		aPts = array(aBB(i),aCent)
+		aTemp(i) = BoxFromDiag(aPts)
+		
+	Next
+	
+	OctreeBB = aTemp
+	
+End Function
+
+
+Function BoxFromDiag(aPts)
+	'Calculates box corner points from two diagonal points
+	Dim aTemp(7)
+	Dim i, arr
+
+	arr = MinMaxPts(aPts)
+	
+	atemp(0) = array(arr(0),arr(2),arr(4))
+	atemp(1) = array(arr(1),arr(2),arr(4))
+	atemp(2) = array(arr(1),arr(3),arr(4))
+	atemp(3) = array(arr(0),arr(3),arr(4))
+	atemp(4) = array(arr(0),arr(2),arr(5))
+	atemp(5) = array(arr(1),arr(2),arr(5))
+	atemp(6) = array(arr(1),arr(3),arr(5))
+	atemp(7) = array(arr(0),arr(3),arr(5))
+	
+	BoxFromDiag = aTemp
+	
+End Function
+
+
+Function MinMaxPts(aPts)
+	
+	Dim minx,Maxx,MinY,MaxY,MinZ,MaxZ
+
+	
+	If aPts(0)(2)>aPts(1)(2) Then
+		Minz = aPts(1)(2)
+		maxZ = aPts(0)(2)
+	Else
+		Minz = aPts(0)(2)
+		maxZ = aPts(1)(2)
+	End If
+
+	If aPts(0)(1) > aPts(1)(1) Then
+		MinY = aPts(1)(1)
+		maxY = aPts(0)(1)
+	Else
+		Miny = aPts(0)(1)
+		maxY =  aPts(1)(1)
+	End If
+	
+	If aPts(0)(0) > aPts(1)(0) Then
+		Minx = aPts(1)(0)
+		MaxX = aPts(0)(0)
+	Else
+		Minx = aPts(0)(0)
+		MaxX =  aPts(1)(0)
+	End If
+	
+	MinMaxPts = array(MinX,MaxX,MinY,MaxY,MinZ,MaxZ)
+	
+End Function
+

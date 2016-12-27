@@ -1,0 +1,68 @@
+﻿Function point_in_curve(sCrv, CrvPt)
+	'returns a point inside a closed planar curve.
+	'Set CrvPt to Null when using this function
+	
+	Dim Dom 
+
+	If Rhino.IsPolyCurve(sCrv) Then
+		dom = Rhino.CurveDomain(sCrv,0)
+	
+	Else 
+		dom = Rhino.CurveDomain(sCrv)
+	
+	End If
+	
+	Dim Param: param = (Dom(1)+ Dom(0))/2
+
+	If IsNull(Crvpt) Then
+		
+		If Rhino.IsPolyCurve(sCrv) Then
+		
+			CrvPt = Rhino.EvaluateCurve(sCrv,Param,0)
+		
+		Else
+		
+			CrvPt = Rhino.EvaluateCurve(sCrv,Param)
+		
+		End If
+	End If
+	
+	'Find a point inside a closed planar curve
+	Dim Plane: Plane = Rhino.CurvePlane(sCrv)
+
+	'Find a tangent vector of the curve
+	Dim aTanDir
+	If Rhino.IsPolyCurve(sCrv) Then
+		aTanDir = Rhino.CurveTangent(sCrv,Param,0)
+	Else
+		aTanDir = Rhino.CurveTangent(sCrv,Param)
+	End If
+	'the current Cplane's Z direction
+	Dim VecZ: VecZ = Rhino.ViewCPlane(Rhino.CurrentView)(3)
+
+	'Rotate the tangent vector 90 deg. on the vertical vector to be a perpendicular vector.
+	Dim aPerpDir: aPerpDir = Rhino.VectorRotate(aTanDir,90,VecZ)
+	
+	Dim Tol: Tol = 5*Rhino.UnitAbsoluteTolerance()
+	'Find a point perp from the curve on one side of the curve.
+	Dim apt1: aPt1 = Rhino.PointAdd(Crvpt,Rhino.VectorScale(aPerpDir,2* Tol))
+	If Rhino.IsPointOnCurve(sCrv,aPt1) Then aPt1 = point_in_curve(sCrv, aPt1)
+
+	'Reverse the perp direction and find a point perp on the other side.
+	Dim apt2: aPt2 = Rhino.PointAdd(CrvPt,Rhino.VectorScale(Rhino.VectorReverse(aPerpDir), 2*Tol))
+	If Rhino.IsPointOnCurve(sCrv,aPt2) Then aPt1 = point_in_curve(sCrv, aPt2)
+	'Test whether the user defined point is closest to the perp. point on one
+	'or the other of the curve. Which ever is closest is the point to use.
+
+	
+	If Rhino.PointInPlanarClosedCurve (aPt1, sCrv,,Tol) Then
+
+		point_in_curve = aPt1
+		'Rhino.AddPoint apt1
+	Else 
+		
+		point_in_curve = apt2
+		'Rhino.AddPoint apt2
+	End If
+
+End Function 

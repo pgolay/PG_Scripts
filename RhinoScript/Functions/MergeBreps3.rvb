@@ -1,0 +1,232 @@
+﻿Option Explicit
+'Script written by Pascal
+'Monday, September 29, 2008 
+
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "MergeBreps","_NoEcho _-Runscript (MergeBreps)"
+
+Sub MergeBreps()
+	
+	Dim aObj: aObj = Rhino.GetObjects("Select objects.",8+16,,True)
+	If Not IsArray(aObj) Then Exit Sub
+	
+	Dim temp, i, n,r, m, Brep
+
+	Rhino.EnableRedraw(False)
+	
+	'sort all the inputs into an array of contiguous intersecting groups
+	Dim aSort: aSort = SortBrepsByIntersection(aObj)
+	
+	'Go through the array of intersecting groups(array) and
+	'merge them
+	
+	For m = 0 To UBound(aSort)
+
+		Dim X: X = False'Flag for marking the end of the possible merges
+		
+		aObj = aSort(m)
+		Brep = aObj(0)'set the base object to test for intersections
+		
+		Do
+		
+			X = False
+			If Ubound(aObJ) > 0 Then
+				For i = 1 To Ubound(aObj)
+		
+					If Not isNull(aObj(i)) Then
+
+
+						Rhino.SelectObjects (array(aObj(i), Brep))
+						Rhino.Command "_TestBrepMerge", False
+					
+						If Rhino.LastCommandResult = 0 Then
+							X = True
+							temp = Rhino.LastCreatedObjects
+							Brep= temp(0)'reset the test object
+							aObj(i) = Null
+							Exit For
+						End If
+				
+					End If
+				Next
+			End If
+			
+		Loop Until X = False '& Y = False
+	Next
+	
+	Rhino.EnableRedraw(True)		
+		
+End Sub
+
+Function DoBrepsIntersect(Brep1, Brep2)
+	
+	Dim test: test = "3383932c-93d6-4004-bd1a-b7e27541bc8e"
+	If Brep1 = test Or Brep2 = test Then
+		Rhino.UnselectAllObjects
+		Rhino.SelectObjects array(Brep1,Brep2)
+		Rhino.EnableRedraw
+		'MsgBox "OK"
+		Rhino.EnableRedraw(False)
+	End If
+		
+	DoBrepsIntersect = False
+	
+	Dim atemp: atemp = Rhino.IntersectBreps(Brep1, Brep2)
+	
+	If isArray(aTemp) Then 
+		
+		Rhino.DeleteObjects(atemp)
+		DoBrepsIntersect = True
+		
+	End If
+
+End Function
+
+Function SortBrepsByIntersection(aBreps)
+	
+	'sorts breps into contiguous intersecting groups
+	
+	Dim aUsed(), aFinal(), atemp(), test, temp
+	Dim i, n, q, r, p, j, X
+	
+	q = 0
+	p = 0
+	r = 0
+
+	Dim BrepCopy: BrepCopy = aBreps
+	Dim Verytemp, arrSel
+	test = BrepCopy(0)
+	
+	Do 
+		
+		VeryTemp = BrepCopy
+		BrepCopy = CullStringFromArray (VeryTemp,Test)
+		
+		If IsUpperBound(BrepCopy)Then
+			For i = 0 To Ubound(BrepCopy)
+			
+				If DoBrepsIntersect(Test,BrepCopy(i)) Then
+				
+					X = True
+					ReDim Preserve aTemp(n)
+					aTemp(n) = Test
+					n = n +1
+					Test = BrepCopy(i)
+
+					Exit For
+				
+				Else 
+				
+					X = False
+				
+				End If
+				
+			Next
+		End If
+		
+		
+		If X = False Then
+
+			ReDim Preserve aTemp(n)
+			aTemp(n) = Test
+			n = 0
+			
+			ReDim Preserve aFinal(q)
+			aFinal(q) = Rhino.CullDuplicateStrings(aTemp)
+			q = q +1
+			
+			If isUpperBound(BrepCopy) Then
+				Verytemp = BrepCopy
+				BrepCopy = CullStringFromArray (Verytemp,Test)
+		
+				Test = BrepCopy(0)
+			
+			End If
+			
+			If isNull(test) Then
+				Exit Do
+				n = 0	
+			End If
+	
+		End If
+		
+		r = r +1
+		X = False
+	Loop  Until r = UBound(aBreps) +1
+	
+	SortBrepsByIntersection = aFinal
+	
+End Function
+
+Function IsStringInArray(item, arr, intCase)
+	'Non case-sensitive= 0, case-sensitive = 1
+	Dim result :  Result = False
+	Dim sItem
+	
+	If isUpperBound(arr) Then
+		
+		If intCase = 0 Then
+			
+			For Each sItem In arr
+				If LCase(sItem) = LCase(Item) Then
+					Result = True
+					Exit For
+				End If
+			Next
+			
+		Else
+			
+			For Each sItem In arr
+				If sItem = Item Then
+					Result = True
+					Exit For
+				End If
+			Next
+			
+		End If
+		
+	End If
+	
+	IsStringInArray = Result
+	
+End Function
+
+Function CullStringFromArray(ByRef arr, str)
+	'not case sensitive
+	Dim Result()
+	
+	If IsArray(arr) Then
+		Dim i : i = 0
+		Dim j : j = 0
+		For i = 0 To UBound(arr)
+
+			If lCase(arr(i))<> lCase(str) Then
+				ReDim Preserve Result(j)
+				result(j) = arr(i)
+				j = j + 1
+			
+			End If
+	
+		Next
+	End If
+	
+	CullStringFromArray = result
+	
+End Function
+
+Function IsUpperBound(ByRef arr)
+
+	IsUpperBound = False
+
+	If IsArray(arr) Then
+
+		On Error Resume Next
+
+		UBound arr
+
+		If Err.Number = 0 Then IsUpperBound = True
+
+	End If
+
+End Function

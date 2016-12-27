@@ -1,0 +1,48 @@
+Function OrderNestedBlocks(aBlocks)
+	'orders an array of block definitions according to their increasing nestedness
+	
+	Dim BD , i, j
+	Set BD = CreateObject("Scripting.Dictionary")
+
+	
+	Dim sBlock, Bound, count, aResults(), n
+	Bound = Ubound(aBlocks)
+	count  = 0
+	n = 0
+	For i = 0 to bound
+		BD.add aBlocks(i), Rhino.BlockContainerCount(aBlocks(i))
+	next
+	
+	dim aCounts: aCounts = BD.Items
+
+	Dim aOrder: aOrder = Rhino.SortNumbers(aCounts,true)
+	
+	'For i = 0 to Ubound(aOrder)
+	Dim X, Y
+	Do
+		
+		X = BD.Items
+		Y = BD.keys
+		
+		For i = 0 to Bound
+			For j = 0 to Bound
+				Rhino.Print aOrder(i)	
+				if BD.Item(aBlocks(j)) = aOrder(i) then
+					redim preserve aResults(n)
+					aResults(n) = aBlocks(j)
+					Rhino.Print aBlocks(j)
+					n = n + 1
+					exit for
+				End if
+			Next
+			BD.Remove (aResults(n-1))
+		Next
+		
+		
+	Loop until n = Bound+1
+		
+	'Next
+	
+	OrderNestedBlocks = aResults
+	
+End Function

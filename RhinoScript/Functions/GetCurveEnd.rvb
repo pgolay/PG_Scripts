@@ -1,0 +1,16 @@
+Dim aCrv: aCrv = Rhino.GetCurveObject("Select curve near end to start")
+If Not IsArray(aCrv) Then Exit Sub
+	
+Dim sCrv: sCrv = aCrv(0)
+Dim CrvEnd:CrvEnd  = GetCrvEnd(sCrv,aCrv(4))
+ 
+
+Function GetCrvEnd(crv, t)
+	'0 = Start, 1 = End
+	Dim Dom: dom = Rhino.CurveDomain(crv)
+	If Abs(t-dom(0)) > Abs(t-dom(1)) Then
+		GetCrvEnd = 1
+	Else
+		GetCrvEnd = 0
+	End If
+End Function

@@ -1,0 +1,85 @@
+Option Explicit
+'Script written by Pascal
+
+'Script date Monday, August 10, 2009 
+
+Call Main()
+Sub Main()
+	'Example:
+	
+	dim arr1: arr1 = array("A; ","B; ","C; ","D; ","E; ","F; ","G; ")
+	dim arr2: arr2 = array(1,6)
+	
+	'	BumpArray arr1,arr2
+	InsertIntoArray arr1,7,"Mr.Inbetween",true
+	Rhino.Print Join(arr1)
+	
+End Sub
+
+
+Sub InsertIntoArray(Byref arr,pos,Item, boolAfter)
+	
+	'arr = the array to modify
+	'pos = the position in arr where the Item is inserted
+	'BoolAfter = the Item is inserted before(true) or after(false) pos
+	
+	dim intPos: IntPos = -1
+	If BoolAfter = true then intPos = 0
+
+	dim i, n, X, p
+	p = 0
+
+	redim preserve Arr(UBound(Arr)+1)
+		
+	'set the position of the earliest element to modify
+	X = (UBound(Arr) - (UBound (Arr)- Pos))+ intPos
+		
+	for n = uBound(Arr) to X+1 step -1	
+		Arr(n) = Arr(n-1)
+	next
+
+	arr(n) = Item
+	
+End Sub
+
+Sub BumpArray(byRef arr1,arr2)
+	
+	'arr1 is the array to modify,
+	'arr2 is an array of indices into arr1
+	'after which new elements will be added to arr1
+	
+	dim i, n, X, p
+	p = 0
+	
+	'go through all the elements in arr2
+	For i = 0 to UBound(Arr2)
+		
+		'redim the arr1 by one more than current so
+		'that an element can be added.
+		redim preserve Arr1(UBound(Arr1)+1)
+		
+		'set the position of the earliest element to modify
+		X = (UBound(Arr1) - (UBound (Arr1)- Arr2(i))) + 2
+		
+		'work back from the end of the array to the
+		'earliest element to modify.'p' increments this
+		'number by the number of elemets added so far
+		'in order to keep the position. Set each element 
+		'to be the same as the preceding one, thus bumping each
+		'up by one position in the array
+		
+		for n = uBound(Arr1) to X+p step -1	
+			Arr1(n) = Arr1(n-1)
+		next
+		
+		'Now add the new element to the array
+		'Example:
+		arr1(n) = Rhino.AddPoint (array(0,0,0))
+		
+		'increment 'p' so that the For loop knows that the
+		'positions have all been moved over by one more.
+		p = p + 1
+		
+	Next
+	
+End sub

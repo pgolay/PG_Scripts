@@ -1,0 +1,28 @@
+﻿Function Seconds2Time(Seconds)
+	
+	'converts seconds To hours and minutes (vbShortTime)
+	Dim Hrs: Hrs =Int(Seconds/3600)
+	Dim Temp: temp = Seconds-(3600*Hrs)
+	Dim Mins: Mins = Int((temp)/60)
+	Dim Secs: Secs  = int(temp-(Mins*60))
+	
+	If secs >=30 Then Mins = Mins+1
+	
+	Seconds2Time = Hrs & ":" & Mins 
+
+End Function
+
+
+
+
+Function Time2Seconds(Time)
+	
+	'converts hours:Minutes (vbShortTime) to seconds
+	
+	Time = FormatDateTime(time,4) 
+	Dim Hrs: Hrs = Left(Time,instr(Time,":")-1)
+	Dim Mins: Mins = Right (Time, instrRev(Time,":")-1)
+
+	Time2Seconds = (3600*Hrs) +(60*Mins)
+	
+End Function

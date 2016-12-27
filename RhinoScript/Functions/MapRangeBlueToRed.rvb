@@ -1,0 +1,20 @@
+﻿Function MapRangeBlueToRed(aValues)
+	'map colors from blue through red via green in asending order
+	Dim max, min, i, Ceiling
+	Dim aTest: atest = Rhino.SortNumbers(aValues)
+	Dim Bound: Bound = UBound(aValues)
+	Min = aTest(0)
+	Max = atest (Bound)
+	ceiling = max-min
+	
+	Dim aColors
+	ReDim aColors(Bound)
+	
+	For i = 0 To UBound(aValues)
+		
+		aColors(i)	= Rhino.ColorHLSToRGB(array(abs(int((((((aValues(i)-min)*240)/(Ceiling-min)))-240)*240)/360),120,240))
+		
+	Next
+	MapRangeBlueToRed = aColors
+
+End Function

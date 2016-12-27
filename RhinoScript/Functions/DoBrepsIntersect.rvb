@@ -1,0 +1,13 @@
+﻿
+Function DoBrepsIntersect(Brep1, Brep2)
+	
+	DoBrepsIntersect = False
+	
+	Dim atemp: atemp = Rhino.IntersectBreps(Brep1, Brep2)
+	
+	If isArray(aTemp) Then 
+		
+		Rhino.DeleteObjects(atemp)
+		DoBrepsIntersect = True
+		
+	End If

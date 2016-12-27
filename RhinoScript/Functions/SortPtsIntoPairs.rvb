@@ -1,0 +1,45 @@
+﻿Function SortIntoPairs(aGrips)
+	
+	'Sort a Set of selected Grips into vertically (World-Z)stacked pairs.
+	'assumes  two identical grids of points, one above the other in World Z
+	Dim Bound: Bound = UBound(aGrips)
+	Dim i, n, j, Result()
+	j = 0
+	Dim aused(),X
+	X = 0
+	Dim Xi,Yi,Zi,Xn,Yn,Zn
+	
+	For i = 0 To Bound-1
+		For n = i+1 To Bound
+			If aGrips(n)(1) <> aGrips(i)(1) Then
+			
+				Xi = agrips(i)(2)(0)
+				Yi = agrips(i)(2)(1)
+				Zi = agrips(i)(2)(2)
+				Xn = agrips(n)(2)(0)
+				Yn = agrips(n)(2)(1)
+				Zn = agrips(n)(2)(2)
+			
+				If Xi = Xi And Yn = Yi Then
+					If Not isInArray(aGrips(n)(1),aUsed) And Not IsInArray(aGrips(i)(1),aUsed) Then
+						ReDim Preserve result(j)
+						If Zi>Zn Then
+							result(j) = array(agrips(n), aGrips(i))
+						End If
+						ReDim Preserve aUsed(x) 
+						aUsed(X) = agrips(n)(1)
+						X = X + 1
+						ReDim Preserve aUsed(x) 
+						aUsed(X) = agrips(i)(1)
+						j = j + 1
+				
+					End If
+				End If
+			End If
+			
+		Next
+	Next
+	
+	SortIntoPairs = Result
+	
+End Function

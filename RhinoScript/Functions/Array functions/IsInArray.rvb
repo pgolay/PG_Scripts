@@ -1,0 +1,88 @@
+Function IsInArray(item, arr)
+	
+	Dim result :  Result = False
+	Dim sItem
+	
+	If isUpperBound(arr) Then
+		
+		For Each sItem In arr
+			If sItem = Item Then
+				Result = True
+				Exit For
+			End If
+		Next
+		
+	End If
+	
+	IsInArray = Result
+	
+End Function
+
+Function WhereInArray(item,arr, intCase)
+	'Finds the locaton of a string in an array of strings
+	'if the result is -1 then the item does not
+	'appear in tha array
+	'intCase 0 = Case Sensitve
+
+	Dim sItem, n, i
+	n = False
+	WhereInArray = -1
+
+		
+	For i = 0 To UBound(arr)
+			
+		if intCase = 0 then
+			If arr(i) = Item Then
+				
+				WhereInArray = i
+				n = True
+				Exit For
+		
+				
+			End If
+			
+		else 
+			
+			If lCase(arr(i)) = LCase(Item) Then
+				
+				WhereInArray = i
+				n = True
+				Exit For
+	
+			End If
+			
+		end if
+			
+	Next
+	
+
+	If n = False Then WhereInArray = -1
+	
+End Function
+
+Function WhereInArrayInt(item,arr)
+	'Finds the locaton of an int in an array of ints
+	'if the result is -1 then the item does not
+	'appear in tha array
+
+	Dim sItem, n, i
+	n = False
+	WhereInArray = -1
+
+		
+	For i = 0 To UBound(arr)
+			
+		If arr(i) = Item Then
+				
+			WhereInArray = i
+			n = True
+			Exit For
+				
+		End If
+				
+	Next
+	
+
+	If n = False Then WhereInArray = -1
+	
+End Function

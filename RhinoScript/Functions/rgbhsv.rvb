@@ -1,0 +1,176 @@
+'------------------------------------------------------------------------------
+' RhinoScript Sample Code - RGB to HSV color conversion procedures
+' Copyright © Robert McNeel & Associates
+'
+' rgbhsv.rvb
+'------------------------------------------------------------------------------
+Option Explicit
+
+'------------------------------------------------------------------------------
+' Subroutine: RGBColorToHSV
+' Purpose:    Converts a Red-Green-Blue color value
+'             into Hue-Saturation-Value color components.
+'------------------------------------------------------------------------------
+Sub RGBColorToHSV(ByVal Color, ByRef rH, ByRef rS, ByRef rV)
+    
+    Dim nR, nG, nB
+    
+    nR = Color Mod 256
+    Color = Color \ 256
+    nG = Color Mod 256
+    Color = Color \ 256
+    nB = Color Mod 256
+    
+    RGBToHSV nR, nG, nB, rH, rS, rV
+
+End Sub
+
+'------------------------------------------------------------------------------
+' Subroutine: RGBtoHSV
+' Purpose:    Converts Red-Green-Blue color components
+'             into Hue-Saturation-Value color components.
+'------------------------------------------------------------------------------
+Sub RGBtoHSV(ByVal R, ByVal G, ByVal B, ByRef rH, ByRef rS, ByRef rV)
+
+    Dim nR, nRR, nG, nGG, nB, nBB
+    Dim nH, nS, nV
+    Dim nMax, nMin, nDelta
+    Dim nRGBs(2)
+
+    nRR = R / 255
+    nGG = G / 255
+    nBB = B / 255
+    nRGBs(0) = nRR
+    nRGBs(1) = nGG
+    nRGBs(2) = nBB
+    nMax = zMax(nRGBs)
+    nMin = zMin(nRGBs)
+    nV = nMax
+
+    If nMax <> 0 Then
+        nS = (nMax - nMin) / nMax
+    End If
+
+    If nS = 0 Then
+        nH = -1
+    Else
+        nDelta = nMax - nMin
+        Select Case nMax
+        Case nRR
+            nH = (nGG - nBB) / nDelta
+        Case nGG
+            nH = 2 + ((nBB - nRR) / nDelta)
+        Case Else
+            nH = 4 + ((nRR - nGG) / nDelta)
+        End Select
+        nH = nH * 60
+        If nH < 0 Then
+            nH = nH + 360
+        End If
+    End If
+    
+    rH = nH
+    rS = nS * 100
+    rV = nV * 100
+
+End Sub
+
+'------------------------------------------------------------------------------
+' Function: HSVtoRGBColor
+' Purpose:  Converts Hue-Saturation-Value color components
+'           into a Red-Green-Blue color value.
+'------------------------------------------------------------------------------
+Function HSVtoRGBColor(ByVal H, ByVal S, ByVal V)
+
+    Dim nR, nG, nB
+
+    HSVtoRGB H, S, V, nR, nG, nB
+    HSVtoRGBColor = RGB(nR, nG, nB)
+
+End Function
+
+'------------------------------------------------------------------------------
+' Subroutine: HSVtoRGBColor
+' Purpose:    Converts Hue-Saturation-Value color components
+'             into Red-Green-Blue color components.
+'------------------------------------------------------------------------------
+Sub HSVtoRGB(ByVal H, ByVal S, ByVal V, ByRef rR, ByRef rG, ByRef rB)
+    Dim nH, nS, nV
+    Dim nRR, nGG, nBB
+    Dim nI, nF, nP, nQ, nT
+
+    nS = S / 100
+    nV = V / 100
+
+    If nS = 0 Then
+        rR = nV * 255
+        rG = nV * 255
+        rB = nV * 255
+        Exit Sub
+    End If
+
+    H = H Mod 360
+    nH = H / 60
+    nI = Int(nH)
+    nF = nH - nI
+    nP = nV * (1 - nS)
+    nQ = nV * (1 - nS * nF)
+    nT = nV * (1 - nS * (1 - nF))
+    
+    Select Case nI
+    Case 0
+        rR = nV * 255
+        rG = nT * 255
+        rB = nP * 255
+    Case 1
+        rR = nQ * 255
+        rG = nV * 255
+        rB = nP * 255
+    Case 2
+        rR = nP * 255
+        rG = nV * 255
+        rB = nT * 255
+    Case 3
+        rR = nP * 255
+        rG = nQ * 255
+        rB = nV * 255
+    Case 4
+        rR = nT * 255
+        rG = nP * 255
+        rB = nV * 255
+    Case Else
+        rR = nV * 255
+        rG = nP * 255
+        rB = nQ * 255
+    End Select
+
+End Sub
+
+'------------------------------------------------------------------------------
+' Function: zMax
+' Purpose:  Returns the maximum value from an array.
+'------------------------------------------------------------------------------
+Function zMax(Values())
+    Dim nMax, i
+
+    For i = 0 To 2
+        If Values(i) > nMax Then nMax = Values(i)
+    Next
+    zMax = nMax
+
+End Function
+
+'------------------------------------------------------------------------------
+' Function: zMin
+' Purpose:  Returns the minimum value from an array.
+'------------------------------------------------------------------------------
+Function zMin(Values())
+    Dim nMin, i
+
+    nMin = Values(0)
+    For i = 1 To 2
+        If Values(i) < nMin Then nMin = Values(i)
+    Next
+    zMin = nMin
+
+End Function

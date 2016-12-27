@@ -1,0 +1,30 @@
+Function PointClosestCrv(aPt,aCrv,intSkip)
+	
+	'find the closest curve to a point
+	Dim X,i,tempparam,testpt,Dist,tempDist
+	Dim K:K = False
+	
+	For i = 0 To UBound(aCrv)
+		If i<>intSkip Then
+			If K = False Then
+				tempParam = Rhino.CurveClosestPoint(aCrv(i),apt)
+				testPt = Rhino.EvaluateCurve(aCrv(i),tempParam)
+				Dist = Rhino.Distance (aPt,testpt)
+				K = True
+				X = 0
+			Else
+				tempParam = Rhino.CurveClosestPoint(aCrv(i),apt)
+				testPt = Rhino.EvaluateCurve(aCrv(i),tempParam)
+				tempDist = Rhino.Distance (aPt,testPt)
+				If tempDist<Dist Then
+					Dist = tempDist
+					X = i
+				End If
+			End If
+		End If
+	Next
+
+			
+	PointClosestCrv = aCrv(X)
+	
+End Function

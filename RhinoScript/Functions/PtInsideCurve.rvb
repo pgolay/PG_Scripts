@@ -1,0 +1,53 @@
+
+'find a point inside a closed curve
+
+'Function  PtInsideCrv(SCrv, DblDist)
+'	
+'	Dim Crv1: Crv1 = Rhino.OffsetCurve(SCrv, Rhino.CurveAreaCentroid (SCrv)(0),DblDist)(0)
+'	
+'	If Rhino.PointInPlanarClosedCurve (Rhino.CurveStartPoint(Crv1), SCrv) Then
+'		PtInsideCrv = Rhino.CurveStartPoint(Crv1)
+'		Rhino.DeleteObject Crv1
+'	Else 
+'		Rhino.DeleteObject Crv1
+'		Crv1 = Rhino.OffsetCurve(SCrv,Rhino.CurveAreaCentroid(SCrv)(0),-DblDist)(0)
+'		PtInsideCrv = Rhino.CurveStartPoint(Crv1)
+'		Rhino.DeleteObject Crv1
+'	End If
+'	
+'End Function
+
+Function  PtInsideCrv(sCrv, aPt)
+	
+	dim tol: tol = Rhino.UnitAbsoluteTolerance() * 10
+	dim VecTan
+	vecTan = Rhino.CurveTangent(sCrv,Rhino.CurveClosestPoint(sCrv,aPt))
+	vecTan = Rhino.VectorScale(Rhino.VectorUnitize(vectan),tol)
+	
+	dim VecRot, testPt, X, n
+	n = 0
+	VecRot = Rhino.CurvePlane(sCrv)(3)
+	testPt = Rhino.PointAdd(aPt, Rhino.VectorRotate(vectan,90,vecrot))
+	
+	Do	
+		X = Rhino.PointInPlanarClosedCurve(testPt, sCrv)
+		if X = 1 then exit do 'pt is inside the curve
+		
+		if X = 2 then 'testpt is on the curve- happens when the first test pt is on a corner
+			apt = testPt
+			vecTan = Rhino.CurveTangent(sCrv,Rhino.CurveClosestPoint(sCrv, apt))
+			vecTan = Rhino.VectorScale(Rhino.VectorUnitize(vectan),tol)
+			testPt = Rhino.PointAdd(apt, Rhino.VectorRotate(vectan,90,vecrot))
+		else
+			testPt = Rhino.PointAdd(apt, Rhino.VectorRotate(vectan,-90,vecrot))
+		End if
+		
+		n = n + 1
+	Loop until n = 5 'safety valve
+
+	rhino.Print n
+	
+	PtInsideCrv = testpt
+	
+
+End Function

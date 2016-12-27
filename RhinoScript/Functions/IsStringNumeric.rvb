@@ -1,0 +1,19 @@
+
+Function IsStringNumeric(str)
+  
+  Dim A 
+  A = True
+  
+  For i = 1 To Len(str)
+    val = Mid(str, i, 1)
+    If Not IsNumeric(val)  Then
+      A = False
+      Exit For
+    End If 
+  Next
+    
+  IsStringNumeric = A
+End Function
+
+
+

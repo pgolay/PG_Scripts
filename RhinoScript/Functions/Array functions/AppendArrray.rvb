@@ -1,0 +1,20 @@
+Function APPEND_ArrayToArray(arrFirst, arrSecond)
+Dim i, StrFirst, StrSecond, arrResult()
+i = 0
+'from Clement Greiner
+' add the first array to new array => arrResult
+
+For Each StrFirst In arrFirst
+	ReDim Preserve arrResult(i)
+	arrResult(i) = StrFirst
+	i = i + 1
+Next
+' add the second  array to arrResult
+For Each StrSecond In arrSecond
+	ReDim Preserve arrResult(i)
+	arrResult(i) = StrSecond
+	i = i + 1
+Next
+' return the new array
+APPEND_ArrayToArray = arrResult
+End Function

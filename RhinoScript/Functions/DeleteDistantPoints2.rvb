@@ -1,0 +1,20 @@
+﻿Option Explicit
+'Script written by Pascal
+
+'Script version Friday, June 20, 2008
+'try this: break up the BB of all points
+'into Sub volumes. Test Each volume For points.
+'If the volume Is sparsely populated, Then these are points of interest
+'you can test them.
+'Volumes might be based on the desired distance, possibly need a minimum group size
+
+Call Main()
+Sub Main()
+	Dim aPts: aPts = Rhino.ObjectsByType(1)
+	If Not isarray(aBB) Then Exit Sub
+	
+	Dim aBB: aBB = Rhino.BoundingBox(aPts)
+	
+	
+	
+End Sub

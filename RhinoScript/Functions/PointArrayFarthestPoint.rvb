@@ -1,0 +1,19 @@
+﻿Function FarthestPt(aPts,aPt)
+	
+	Dim dist: dist = Rhino.Distance(aPt, aPts(0))
+	
+	Dim temp, i, Result
+	Result = 0
+	
+	For i = 1 To UBound(aPts)
+		
+		temp = rhino.Distance (aPt,aPts(i))
+		If temp > Dist Then
+			dist = temp
+			Result = i
+		End If
+	Next
+	
+	FarthestPt = aPts(Result)
+	
+End Function

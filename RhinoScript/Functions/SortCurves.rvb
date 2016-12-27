@@ -1,0 +1,102 @@
+﻿sortCurvesTest
+
+Sub SortCurvesTest'_(aCrvs)
+	Dim sCrv, aCrvs
+	aCrvs = Rhino.GetObjects(,4,,True)
+	aCrvs2 = SortCurves( aCrvs)
+	Dim n: n = 1
+	Rhino.EnableRedraw(False)
+	For Each sCrv In aCrvs2
+		Rhino.AddTextDot n,Rhino.CurveStartPoint(sCrv)
+		n = n +1
+	Next
+	Rhino.EnableRedraw
+End Sub
+
+
+
+Function SortCurves(aCrvs)
+	
+	Dim i
+	For i = 1 To Ubound(aCrvs)
+
+		If Not (Rhino.CurveDirectionsMatch (aCrvs(0), aCrvs(i))) Then
+			Rhino.ReverseCurve(aCrvs(i))
+		End If
+	Next
+	
+	Dim  Dist, Temp, j, n, idx
+	
+	'find the farthest curve, or one end of the physical array of curves.
+	
+	For i = 0 To Ubound(aCrvs)
+		For j = 0 To Ubound(aCrvs)
+			
+			If aCrvs(i) <> aCrvs(j) Then
+				
+				If i=0 Then
+					Dist = Rhino.Distance(Rhino.CurveStartPoint(aCrvs(i)),Rhino.CurveStartPoint(aCrvs(j)))
+					idx = i
+				Else
+					Temp = Rhino.Distance(Rhino.CurveStartPoint(aCrvs(i)),Rhino.CurveStartPoint(aCrvs(j)))
+					If Temp > Dist Then
+						Dist = Temp
+						idx = i
+					End If
+					
+				End If
+			End If		
+		Next 
+	Next
+	
+	
+	Dim aOutPut(), aTemp(), d, aInput, sCrv, s, h, q, r,v
+	aInput = aCrvs
+	
+	'put the end curve at the beginning of the array
+	ReDim Preserve aOutput(0)
+	aOutput(0) = aInput(idx)
+	
+	d = 1
+	
+	Do	
+		h = 0
+		
+		For Each sCrv In aInput
+		
+			If sCrv <> aOutput(ubound(aOutput)) Then
+				ReDim Preserve aTemp(h)
+				aTemp(h) = sCrv
+				h = h +1
+			End If
+			
+		Next
+		
+		aInput = atemp
+	
+		For r = 0 To Ubound(aInput)
+			
+			If r = 0  Then
+				Dist = Rhino.Distance(Rhino.CurveStartPoint(aOutput(d-1)),Rhino.CurveStartPoint(aInput(r)))
+				idx = r
+			Else
+				temp = Rhino.Distance(Rhino.CurveStartPoint(aOutput(d-1)),Rhino.CurveStartPoint(aInput(r)))
+				If temp < Dist Then
+					Dist = Temp
+					idx = r
+				End If
+			End If
+				
+		Next 
+		
+		
+		ReDim Preserve aOutput(d) 
+		aOutput(d) = aInput(idx)
+		d = d + 1
+	Loop Until d = Ubound(aCrvs) + 1
+	
+	Rhino.UnSelectAllObjects
+		
+	SortCurves = aOutput
+	
+End Function

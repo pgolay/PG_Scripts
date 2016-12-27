@@ -1,0 +1,14 @@
+﻿
+
+Function RandomColor()
+
+	Dim intRed, intGreen, intBlue, ColorOut
+
+		
+	intRed = 255*Rnd
+	intGreen = 255*Rnd
+	intBlue = 255*Rnd 
+	RandomColor =  RGB(intRed,IntGreen,intBlue)  
+	
+
+End Function

@@ -1,0 +1,14 @@
+﻿Function OffsetBB(aBB,dblOffset)
+	dim aTemp(7)
+
+	aTemp(0) = array(aBB(0)(0) - dblOffset,aBB(0)(1) - dblOffset, aBB(0)(2) - dblOffset)
+	aTemp(1) = array(aBB(1)(0) + dblOffset,aBB(1)(1) - dblOffset, aBB(1)(2) - dblOffset)
+	aTemp(2) = array(aBB(2)(0) + dblOffset,aBB(2)(1) + dblOffset, aBB(2)(2) - dblOffset)
+	aTemp(3) = array(aBB(3)(0) - dblOffset,aBB(3)(1) + dblOffset, aBB(3)(2) - dblOffset)
+	aTemp(4) = array(aBB(4)(0) - dblOffset,aBB(4)(1) - dblOffset, aBB(4)(2) + dblOffset)
+	aTemp(5) = array(aBB(5)(0) + dblOffset,aBB(5)(1) - dblOffset, aBB(5)(2) + dblOffset)
+	aTemp(6) = array(aBB(6)(0) + dblOffset,aBB(6)(1) + dblOffset, aBB(6)(2) + dblOffset)
+	aTemp(7) = array(aBB(7)(0) - dblOffset,aBB(7)(1) + dblOffset, aBB(7)(2) + dblOffset)
+	OffsetBB = atemp
+
+End function

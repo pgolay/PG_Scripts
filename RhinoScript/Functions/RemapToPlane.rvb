@@ -1,0 +1,10 @@
+﻿
+
+Function RemapToPlane(aObj, Plane1, Plane2)
+	
+	Dim aXform: aXForm =	Rhino.XformRotation(Plane1, Plane2)
+
+	Dim result: Result = Rhino.TransformObjects aObj, aXform, True  'bln Copy
+	RemapToPlane = Result
+	
+End Function

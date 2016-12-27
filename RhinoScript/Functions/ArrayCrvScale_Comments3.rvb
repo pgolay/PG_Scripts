@@ -1,0 +1,428 @@
+﻿Option Explicit
+'Script written by Pascal
+'RMA
+'Script version Friday, February 01, 2008
+
+'Brian- one thing we did not take into account yet is what to do if the
+'script is run With other than the World Top cplane Is active
+'This one onlty works from the Top cplane- we can fix it up to
+'work from any plane
+
+Private dblOldScale, OldIntDiv, OldBlnRotStyle, OldRotInc,OldRotTot, n
+'This stuff sets up the default values
+'for the scale and repeat numbers.
+'note that it is outside of the sub routine
+'so it stays In memory between runs of the
+'Sub:
+
+n = 1
+
+If IsEmpty(dblOldScale) Then
+	dblOldScale = 1
+End If
+
+If IsEmpty(oldintDiv) Then
+	oldIntDiv = 2
+End If
+
+If IsEmpty(OldBlnRotStyle) Then
+	OldBlnRotStyle= True
+End If
+
+If IsEmpty(OldRotInc) Then
+	OldRotInc= 1.0
+End If
+
+If IsEmpty(OldRotTot) Then
+	OldRotTot= 180.0
+End If
+
+
+Sub ArrayCrvScale()
+	
+	'declare the array of objects to be arrayed. Then get the array
+	'from the user- this is an array of UUIDS of objects:
+	Dim aObj: aObj = Rhino.Getobjects("Select objects to orient",,True,True)
+	
+	'the next line is an escape from the script
+	'in the event that an array is not selected (user hits Esc
+	'for example), then bail from the script. Without these 
+	'escapes hatches letting you get out of the script,
+	'the next prompts for the points and the curve and the surface 
+	'would continue to come and the user would be banging on
+	'the Esc key. Eventually, the part of the script that uses
+	'the array would come up, and the user would see an error message,
+	'which is ugly.
+	
+	If Not isArray(aObj) Then Exit Sub
+	
+	'declare the array for the base point, and have the user
+	'select apoint:
+	'	Dim abase: abase = rhino.GetPoint("Base point")
+	Dim aBaseDir: aBaseDir = Rhino.GetPoints(True,false,"Base point","Set base direction",2)
+	
+	'escape hatch:
+	If Not isArray(aBaseDir) Then Exit Sub
+	If Ubound(aBaseDir) <> 1 Then Exit Sub
+	
+		
+	'This is a plane- we need this plane, the current view's Cplane,
+	'to determine the starting two points for the Orient operation, 
+	'which requires to starting points and two target points. We will 
+	'give it the base point from a above as the first of the first pair
+	'of points, and a point directly above that point in the Cplane Z.
+	Dim Plane: Plane = Rhino.ViewCplane
+	
+	Dim aBase: abase = aBaseDir(0)
+	Dim VecX: VecX = Rhino.VectorUnitize(Rhino.VectorCreate(aBaseDir(1), abaseDir(0)))
+	Dim VecY: VecY = Rhino.VectorRotate(VecX,90,Plane(3))
+	Dim BasePlane: BasePlane = Rhino.PlaneFromFrame(aBase,VecX , VecY)
+	
+	'declare the variable for the target curve, a string(the UUID
+	'of the curve in Rhno's database), then have the user
+	'select the curve:
+
+	Dim aCrv: aCrv= Rhino.GetCurveObject("Select curve near end to start array",False,False)
+	If Not isarray(aCrv) Then Exit Sub
+	Dim sCrv: sCrv = aCrv(0)
+	Dim intEnd: intEnd = GetCurveEnd (sCrv, aCrv(2), aCrv(4))
+	Dim revCrv: revCrv = False
+	If intEnd = 1 Then
+		rhino.ReverseCurve(sCrv)
+		RevCrv= True
+	End If
+	
+	'(sCrv,Picktype,Param)
+	'Rhino.GetObject("Select curve",4)
+	
+	
+	'Escape hatch, notice this one uses the If-End If format. Above,
+	'I used the single line If with no End if- the safe way is 
+	'to use End If but in very simple cases the one line version
+	'works fine.
+	If IsNull(sCrv) Then
+		Exit Sub
+	End If
+	
+	'Declare and get the target surface- we need this in order to
+	'get the surface normals to which to orient the objects.
+	Dim sSrf:sSrf = Rhino.GetObject("Select surface",8)
+	
+	'escape hatch, simple form
+	If IsNull(sSrf) Then Exit Sub
+
+	Dim aRotate: aRotate = getRotateInfo
+	If Not isArray(aRotate) Then Exit Sub
+		
+	Dim blnRotate: BlnRotate = aRotate(0)
+	Dim BlnRotStyle: BlnRotStyle = aRotate(1)
+	Dim angle: Angle = aRotate(2)
+	
+	Dim n, i, aOutput()
+			
+	'Declare and get the number of copies to make:
+	Dim intDiv: intDiv = Rhino.GetInteger("Number of objects",OldIntDiv,2)
+	
+	'Escape hatch with a twist- this sets the OldintDiv equal to IntDiv
+	'If intDiv Is Not Null. OldIntDiv Is used above To Set the 
+	'default number for the IntDiv. In this way, the last number used
+	'is always offered and the user can hit Enter to accept 
+	'it And move On.:
+	If Not isnull(intDiv) Then
+		oldIntDiv = intDiv
+	Else
+	End If
+	
+	'Declare And Get the scale factor- same trick To remember the scale
+	'factor from the last time the script was run.
+	Dim dblScale: dblScale = Rhino.GetReal("Scale factor",dblOldScale)
+	
+	'Escape hatch and set the  default for the next time
+	If isNumeric(dblScale) Then
+		dblOldScale = dblScale 
+	Else Exit Sub
+	End If
+		
+	Dim intRot, sContinue
+	
+	Do
+		intRot = 0
+		'this returns an array of 3d points along the curve:
+		Dim aDiv: aDiv = Rhino.DivideCurve(sCrv,intDiv-1,False)
+	
+		'eascape hatch with message box
+		If Not isArray(aDiv) Then 
+		
+			MsgBox "Failed to divide curve"
+			Exit Sub
+		
+		End If
+	
+		'declare some variables to be used in the For loop below
+		Dim pt, q, aScale, temp, X
+	
+		X = 1'starting number for resetting the scale factor below
+		q = 0' a counter to enable the For loop to
+		'tell if it is on the first run through the loop
+		'or not- on the first run through the loop it
+		'will not scale the objects at all.
+	
+	
+		'Turn off drawing the screen to make the script run way faster.
+		Rhino.EnableRedraw(False)
+
+		'This is the point above. The plane above is defined by a World 3d point
+		'0,0,0, and three unit vectors pointing in X, Y and Z. We take the
+		'Z one here and add it to the base point to get the point directly
+		'above the base point.
+		Dim  aBase2: aBase2 = Rhino.PointAdd(aBase,plane(3))
+		Dim abase3: abase3 = Rhino.PointAdd(abase,vecX)
+	
+		'the Orient method requires an array of 2 points for the first pair
+		' and an aray of 2 points for the second pair. So we will get the
+		'two points and put them in an array, which we will declare
+		'on the same line:
+		Dim aRef: aRef = array(Abase, abase2, aBase3)
+	
+		'A couple more variables we'll need in the For loop.
+		Dim atarg, Pt2, Pt3
+	
+
+		'*************************
+		'*************************
+		'Pt is an element, or a single 3d point in the array of points
+		'we got by dividing the curve. We will look at each pt in the
+		'entire array and do something with each.
+		For Each pt In aDiv
+	
+			'if the counter q has incremented at least one from zero
+			'then apply the scale factor to X
+			If q > 0 Then
+				X = dblScale*X
+			
+				'otherwise, use full-scale
+			Else
+				X = 1
+			End If
+		
+			'The Rhino.ScaleObjects method requires an array of scale
+			'factors for X, Y and Z. Since we want ther scaling to be
+			'uniform In 3d, make the array the same In all 3 elements:
+			aScale = array(X,X,X)
+	
+			'here we need the second point in the second pair of points
+			'to hand to the Orient method. The first point is the division
+			'point which we Get from the array ADiv And we are using pt
+			'to designate In the For loop. We have written a function to extract
+			'this second point from the surface normal, called GetNormalPoint
+			'This function takes as input the 3d point pt, and the surface
+			'from which to get the normal. The finction is also commented.
+		
+			pt2 = GetNormalpoint(Pt, sSrf)
+			Pt3 = Rhino.PointAdd(Pt,Rhino.CurvePerpFrame(sCrv,Rhino.CurveClosestPoint(sCrv,Pt))(3))
+			'Once we have that second point, make an array with pt
+			'as the second pair For Orient:
+			aTarg = Array(pt, pt2, Pt3)
+		
+			'Now, orient the objects with the Copy switch on (the 1 at the end)
+			'and call them 'temp'.
+			temp = Rhino.OrientObjects(aObj,aref,aTarg,1)
+		
+			If BlnRotate= True Then
+				intRot = RotateArrayedObjects (temp,BlnRotStyle,Angle,sCrv, aTarg, intDiv, intRot)
+			End If
+		
+			'scale the temp objects with pt as the scale origin
+			Rhino.ScaleObjects temp,pt,aScale
+			For i = 0 To  Ubound(temp)
+				ReDim Preserve aOutput(n+i)
+				aOutput(n+i) = temp(i)
+				n = n + 1
+			Next
+			
+			'increment the counter
+			q = q+1
+	
+			'now move on to the next pt in the array:
+		Next
+		
+		'*************************
+		'*************************
+
+		'when we are done orienting and scaling,
+		'turn On the drawing again:
+		
+		Rhino.EnableRedraw(True)
+		
+		sContinue = Rhino.GetString("Press Enter or OK to accept, or choose a setting to edit","OK",array("Rotation","Scaling","Spacing","Number"))
+		
+		Rhino.EnableRedraw(False)
+		
+		If LCase(sContinue) <> "ok" Then Rhino.DeleteObjects aOutput
+		
+		If lCase(sContinue) = "rotation" Then
+			msgBox " about to get rotter"
+			aRotate = getRotateInfo
+			
+			If Not isArray(aRotate) Then Exit Sub
+		
+			BlnRotate = aRotate(0)
+			BlnRotStyle = aRotate(1)
+			Angle = aRotate(2)
+			
+		End If
+		
+	Loop Until lCase (sContinue) = "ok"	
+	
+	If revCrv = True Then Rhino.ReverseCurve(sCrv)
+
+	Rhino.EnableRedraw(True)
+	
+End Sub
+
+
+	'these two lines add an alias to Rhino's options to run the script
+Rhino.AddAlias "ArrayCrvScale", "_NoEcho -_Runscript ArrayCrvScale"
+
+	'and add the script as a startup script to Rhino's OPtions>RhinoScript page
+	'so it will be available as soon as Rhino starts:
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+'all this allows Drag and Drop to load the sctipt more or less permanently
+'and add the alias so it is ready to go on Drag and drop.
+
+Function GetNormalpoint(Pt, sSrf)
+
+	'Given a 3d point and a surface, this funtion returns the
+	'	unit vector that corresponds To the surface normal
+	'	at the UV location On the surface that Is closest 
+	'	To the 3d point.
+	
+	'Decalre and get the closest point on the surface to the 3d point
+	'this is returned as an array of a pair of UV values, U and V
+	Dim aParam: aparam = Rhino.SurfaceClosestPoint(sSrf,pt)
+	
+	'Get the surface normal at that UV location
+	Dim Normal: normal = Rhino.SurfaceNormal(sSrf,aparam)
+	
+	'add the normal vector to the 3d point to get a second point
+	Dim Result: Result = Rhino.PointAdd(Pt,normal)
+	
+	'set the finction equal to the point so the sub can 
+	'Get at that point:
+	GetNormalPoint = Result
+	
+End Function
+
+Sub DrawPlaneFrame (aPlane, dblScale)
+	'Mostly for testing transforms
+	Dim pt0: Pt0 =aPlane(0)
+	
+	Dim vec1: vec1 = Rhino.VectorScale(aPlane(1),dblScale)
+	Dim pt1: Pt1 = Rhino.PointAdd (aPlane(0),vec1)
+	
+
+	Dim vec2: vec2 = Rhino.VectorScale(aPlane(2),dblScale)
+	Dim pt2: Pt2 = Rhino.PointAdd (aPlane(0),Vec2)	
+
+	Dim vec3: vec3 = Rhino.VectorScale(aPlane(3),dblScale)
+	Dim pt3: Pt3 = Rhino.PointAdd (aPlane(0),Vec3)	
+	
+	Dim Line1: Line1 = Rhino.AddLine (Pt0,Pt1)
+	Dim Line2: Line2 = Rhino.AddLine (Pt0,pt2)
+	Dim Line3: Line3 = 	Rhino.AddLine (Pt0,Pt3)
+	
+	Rhino.ObjectColor line1, vbred
+	Rhino.ObjectColor line2, vbgreen
+	rhino.ObjectColor line3, vbBlue
+	
+	Dim sgrp: sGrp = Rhino.AddGroup
+	
+	Rhino.AddObjectsToGroup array(Line1,Line2,Line3),sGrp
+	
+End Sub
+
+Function RotateArrayedObjects(temp,BlnRotStyle, Angle,sCrv, aTarg, intDiv,IntRot)
+	Dim RotAng, tempAngle
+	'False = Increment , True = Divide total
+	
+	If blnRotStyle = False Then
+		RotAng = intRot*Angle
+	Else  	
+		tempAngle = Angle/(IntDiv-1)
+
+		RotAng = (intRot)*TempAngle
+	End If
+	
+	Rhino.Print Angle & "    "&TempAngle &"    " &RotAng
+	
+	Dim Plane: Plane = Rhino.CurvePerpFrame(sCrv,Rhino.CurveClosestPoint(sCrv,atarg(0)))
+	'DrawPlaneFrame Plane,10 'TEST
+	Rhino.RotateObjects temp,Plane(0),RotAng,Plane(3),False
+	
+	RotateArrayedObjects = intRot+1
+	
+End Function
+
+Function GetRotateInfo
+	Dim blnRotate
+	Dim sRotate: sRotate = Rhino.GetString("Rotate output from surface normal?","No",array("Yes", "No"))
+	'Rhino.GetBoolean("Rotate output from surface normal?" & n,array("Rotate","No","Yes"),array(False))(0)
+	If lcase(sRotate) = "no" Then 
+		blnRotate = False
+	ElseIf lCase(sRotate) = "yes" Then
+		blnRotate = True
+	End If
+	
+	
+	
+	If IsNull(blnRotate) Then Exit Function
+	
+	Dim RotAngInc, RotAngTot, Style, Angle, intRot
+	
+	If blnRotate = True Then
+		Dim blnRotStyle
+		intRot = 0
+		blnRotStyle = Rhino.GetBoolean("Rotation style", array("RotateBy","Increment","DivideTotal"),array(OldblnRotStyle))(0)
+		
+		If IsNull(blnRotStyle) Then Exit Function
+		OldBlnRotStyle = blnRotStyle
+		
+		If BlnRotStyle = False Then
+		
+			RotAngInc = Rhino.GetReal("Rotation increment angle",OldRotInc,Rhino.UnitAngleTolerance)
+			If isNull(rotAngInc) Then Exit Function
+			OldRotInc = RotAngInc
+			Angle = RotAngInc
+			
+		Else
+			
+			RotAngTot = Rhino.GetReal("Rotation total angle",OldRotTot,Rhino.UnitAngleTolerance)
+			If isNull(RotAngTot) Then Exit Function
+			OldRotTot = RotAngTot
+			Angle = RotAngtot
+			
+		End If
+		
+	Else BlnRotStyle = ""
+		angle = 0
+	End If
+	
+	
+	GetRotateInfo = array(BlnRotate,BlnRotStyle,Angle)
+	
+End Function
+
+Function GetCurveEnd(sCrv,Picktype,Param)
+
+	If PickType <> 1 Then
+		GetCurveEnd = 0
+	Else
+		Dim aparam: aparam = Rhino.CurveDomain(sCrv)
+		If param <= aparam(0) + ((aparam(1) - aparam(0))/2) Then
+			GetCurveEnd = 0
+		Else
+			GetCurveEnd = 1
+		End If
+	End If
+
+End Function

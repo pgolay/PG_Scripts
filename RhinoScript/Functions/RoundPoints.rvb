@@ -1,0 +1,25 @@
+﻿
+
+Function RoundPoints (aPts,IntRound)
+	
+	'Rounds the coordinates of a set of points
+	' to intRound. 
+	
+	Dim Result(),i, Temp(), n, Pt, dblPt
+
+	For Each Pt In Apts
+		i = 0
+
+		For Each dblPt In Pt
+			ReDim Preserve Temp(i)
+			Temp(i) = Round(dblPt,IntRound)
+			i = i + 1
+		Next
+		ReDim Preserve Result(n)
+		result(n) = temp
+		n = n + 1
+		
+	Next
+	
+	RoundPoints = Result
+End Function

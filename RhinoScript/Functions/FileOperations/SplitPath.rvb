@@ -1,0 +1,33 @@
+﻿
+
+Function SplitPath(Path)
+    
+	'Get the filename without the path or extension.
+	'Input Values:
+	'   flname - path and filename of file.
+	'Return Value:
+	'   GetFileName - name of file without the extension.
+    
+	Dim posn , i 
+	Dim fName, fpath, fExt
+    
+	posn = 0
+	'find the position of the last "\" character in filename
+	For i = 1 To Len(path)
+		If (Mid(path, i, 1) = chr(92)) Then posn = i
+	Next 
+
+	'get filename without path
+	fName = Right(path, Len(path) - posn)
+	fPath = Left(path, Len(path) - posn)
+	'get filename without extension
+	posn = InStr(fName, ".")
+	If posn <> 0 Then
+		fExt = Right(fName, posn-2)
+		fName = Left(fName, posn - 1)
+
+	End If
+	
+	Splitpath = array(fpath,fname, fExt)
+	
+End Function

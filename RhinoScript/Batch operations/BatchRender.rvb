@@ -1,0 +1,68 @@
+Sub BatchRender
+  
+  Dim arrFiles(), intX
+  intX=0
+  
+  Do 
+    strFile =Rhino.OpenFileName ("Open", "Rhino Files (*.3dm)|*.3dm||")
+    'intX = intX+1
+    If Not IsNull(strFile) Then
+      ReDim Preserve arrFiles(i)
+      arrFiles(i) = strFile
+    End If
+  Loop Until IsNull(strFile)
+  
+  
+  arrTypes = array(".jpg", ".tif", ".tga", ".bmp", ".png")
+  
+  strType = Rhino.GetString("Rendered image format",, arrTypes)
+  If Not IsNull(strType) Then
+    For Each strFile In arrFiles 
+    strSave =JustPath(strFile)
+    'strname = JustName(strFile)
+    strSave = strSave & strType
+    Rhino.Print strSave
+    Next
+    Else
+    Exit Sub
+      
+  End If
+    
+
+  
+End Sub
+
+ BatchRender
+ 
+'////////////////////////////////
+'////////////////////////////////
+ 
+ Function JustPath(strPath)
+  
+  Dim intSlash, Path
+  'MsgBox strPath'test
+  
+  
+  intSlash = InStrRev(strPath, ".")
+  Path = Left(strPath,intSlash-1)
+  Rhino.Print Path
+  JustPath = Path
+ 
+ End Function
+ 
+ '////////////////////////////////
+'////////////////////////////////
+ 
+ Function JustName(strPath)
+  
+  Dim intSlash, Path
+  
+  intlen = Len(strpath)
+  intSlash = InStrRev(strPath, "\")
+  Name = Right(strPath,(intlen-intSlash))
+  intName = InStr(name, ".")
+  Name = Left (Name, intname)
+  Rhino.Print Name
+  JustName = Name
+ 
+ End Function

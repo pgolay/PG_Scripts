@@ -1,0 +1,26 @@
+﻿Function BBCentroid (arrObj)
+	
+	Dim arrCent, First, Scnd
+	Dim X1,X2,Y1,Y2,Z1,Z2
+
+	'find the bounding box of the objects	
+	Dim arrBB : arrBB = Rhino.BoundingBox(arrObj,Rhino.CurrentView)
+	
+	First=arrBB(0)'Opposite corners of the BB
+	Scnd = arrBB(6)
+  
+	'break out each coordinate of the corner locations
+	X1 = First(0)
+	Y1 = First(1)
+	Z1 = First(2)
+	X2 = Scnd(0)
+	Y2 = Scnd(1)
+	Z2 = Scnd(2)
+
+	'bounding box centroid
+	arrCent = Array(.5*(X1+X2), .5*(Y1+Y2),.5*(Z1+Z2))
+	
+	
+	BBCentroid = arrCent
+
+End Function

@@ -1,0 +1,13 @@
+
+
+
+Function ProjectVector(vec, plane)
+	'Vector will be projected to the plane origin
+	
+	Dim testVec: testVec = Rhino.VectorUnitize(vec)
+	Dim TestPt: Testpt = Rhino.PlaneClosestPoint(Plane, Rhino.PointAdd(Plane(0), vec))
+	Dim NewVec: Newvec = Rhino.VectorCreate(TestPt, Plane(0))
+	
+	ProjectVector = Rhino.vectorUnitize(NewVec)
+	
+End Function

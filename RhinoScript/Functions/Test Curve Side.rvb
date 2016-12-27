@@ -1,0 +1,39 @@
+'Get a point and decide which side of a curve it is on.
+
+Dim sCrv: sCrv = Rhino.GetObject("Select curve",4,True)
+If isNull(sCrv) Then Exit Sub
+	
+Dim aDir: aDir = Rhino.GetPoint("Side to offset")
+If Not isArray(aDir) Then Exit Sub
+
+
+
+
+'get the parameter, then 3d point on the curve closest to the user defined point
+Dim Param: Param = Rhino.CurveClosestPoint(sCrv, aDir)
+Dim CrvPt: CrvPt = Rhino.EvaluateCurve(sCrv,Param)
+
+'Find a tangent vector of the curve at that point
+Dim aTanDir: aTanDir = Rhino.CurveEvaluate(sCrv,param,1)
+
+'the current Cplane's Z direction
+Dim VecZ: VecZ = Rhino.ViewCPlane(Rhino.CurrentView)(3)
+
+'Rotate the tangent vector 90 deg. on the vertical vector to be a perpendicular vector.
+Dim aPerpDir: aPerpDir = Rhino.VectorRotate(aTanDir(1),90,VecZ)
+	
+'Find a point perp from the curve on one side of the curve.
+Dim apt1: aPt1=Rhino.PointAdd(Crvpt,Rhino.VectorScale(aPerpDir,dblOff))
+
+'Reverse the perp direction and find a point perp on the other side.
+Dim apt2: aPt2=Rhino.PointAdd(Crvpt,Rhino.VectorScale(Rhino.VectorReverse(aPerpDir),dblOff))
+
+'Test whether the user defined point is closest to the perp. point on one
+'or the other of the curve. Which ever is closest is the point to use.
+
+Dim aPt
+If Rhino.Distance(aDir,aPt1) < Rhino.Distance(aDir,apt2) Then
+	apt = aPt1
+Else 
+	apt = apt2
+End If

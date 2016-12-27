@@ -1,0 +1,87 @@
+﻿'aPt1 is the 3d point location of Vec1, aPt2 the location of Vec2
+'The function returns the intersection point of infinite
+'lines  from these vectors
+'an additional function checks that the vectors are coplanar
+
+Function VectorVectorIntersection(aPt1,aPt2,Vec1,Vec2)
+
+	If Rhino.IsVectorParallelTo(vec1,Vec2) Then
+		MsgBox "Directions cannot be parallel"
+		Exit Function
+	End If
+	
+	Dim aPlane(3), Coplanar
+	Coplanar = True
+		
+	aPlane(0) = apt1
+	aPlane(1) = Rhino.PointAdd(apt1,Vec1)
+	aPlane(2) = aPt2
+	aPlane(3) = Rhino.PointAdd(apt2,Vec2)
+	
+	Dim plane: Plane = Rhino.PlaneFitFromPoints(aPlane)
+		
+	Dim Line1: Line1 =  Rhino.AddLine (aPt1, aPlane(1)) 
+	Dim Line2: Line2 = Rhino.AddLine(aPt2, aPlane(3))
+	
+	If Not Rhino.IsCurveInPlane(Line1,Plane) Or _
+		Not Rhino.IsCurveInPlane(Line2,Plane) Then
+		Coplanar = False
+			
+	End If
+		
+	If Coplanar = True Then
+		
+		Dim aStart: astart = Rhino.CurveStartPoint(Line1)
+		Dim aEnd: aEnd = Rhino.CurveEndPoint(Line1)
+
+		Dim Plane1: Plane1 = PlaneFromLinePlane(Line1,Plane)
+		Dim Plane2: PLane2 = PlaneFromLinePlane(Line2,Plane)
+	
+		Dim aPt: aPt = Rhino.IntersectPlanes(PLane, Plane1, Plane2)
+		
+	Else 	
+		Rhino.Deleteobject Line1
+		Rhino.DeleteObject Line2
+		MsgBox "Vectors must be coplanar."
+	End If
+	
+	Rhino.Deleteobject Line1
+	Rhino.DeleteObject Line2
+	VectorVectorIntersection = aPt
+	
+End Function
+
+
+Function PlaneFromLinePlane(Line,Plane)
+	
+	Dim aStart: aStart = Rhino.CurveStartPoint(Line)
+	Dim aEnd: aEnd = Rhino.CurveEndPoint(Line)
+	Dim VecX: VecX = Rhino.VectorCreate(aEnd,aStart)
+	Dim aZ: aZ = Rhino.PointAdd(aStart,Plane(3))
+	Dim vecY: vecY = Rhino.VectorCreate(aStart,aZ)
+	Dim result:	Result  = Rhino.PlaneFromFrame(aStart,vecX, vecY)
+
+	PlaneFromLinePlane = Result
+	
+End Function
+
+	
+Function AreLinesparallel(sLine1,sLine2)
+	Dim X: X = True
+	Dim aStart1: astart1 = Rhino.CurveStartPoint(sLine1)
+	Dim aStart2: aStart2 = Rhino.CurveStartPoint(sLine2)
+
+	
+	Dim aEnd1: aEnd1 = Rhino.CurveEndPoint(sLine1)
+	Dim aEnd2: aEnd2 = Rhino.CurveEndPoint(sLine2)
+	
+	Dim vec1: Vec1 = Rhino.vectorCreate(aStart1, aEnd1)
+	Dim vec2: Vec2 = Rhino.vectorCreate(aStart2, aEnd2)
+	
+	If Rhino.IsVectorParallelTo(Vec1, vec2) = 0 Then
+		X = False
+	End If
+	
+	AreLinesparallel = X
+	
+End Function

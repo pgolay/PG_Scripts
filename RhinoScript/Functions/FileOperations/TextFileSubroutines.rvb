@@ -1,0 +1,86 @@
+﻿Option explicit
+'Create a new Text file
+
+Sub CreateTextFile
+	Dim fso, Myfile, strFileName, objectStream, strLine
+  
+	strFilename = Rhino.SaveFileName ("Save", "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||")
+  
+	On Error Resume Next
+	
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	Set ObjectStream  = FSO.CreateTextFile(strFileName, True)
+  
+	If Err Then
+		MsgBox Err.Description
+		Exit Sub
+	End If
+	ObjectStream.Close
+  
+End Sub
+
+
+  
+'///////////////////////////////////////////////////
+'///////////////////////////////////////////////////
+
+'Add a new line to an existing text file
+Sub WriteANewLine (strFileName, strLine)
+	
+	Dim fso, myFile
+	'open the file for appending
+	Const ForAppending = 8
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	Set MyFile  = fso.OpenTextFile(strFileName, ForAppending, True)
+	MyFile.WriteLine (strLine)'Write the line
+	MyFile.Close 'Close the file
+  
+End Sub
+
+'//////////////////////////////////////////
+'//////////////////////////////////////////
+
+Sub ReadTextFile
+
+	Dim objFSO, objFile, strFileName, strLine
+
+	Const ForReading = 1
+
+	strFileName = Rhino.OpenFileName("Open", "Text Files (*.txt)|*.txt||")
+
+	If IsNull(strFileName) Then Exit Sub
+
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+
+	Set objFile = objFSO.OpenTextFile(strFileName, ForReading)
+
+	While Not objFile.AtEndOfStream
+
+		strLine = objFile.ReadLine
+
+		Rhino.Print strLine
+
+	Wend
+
+	objFile.Close
+
+	Set objFSO = Nothing
+
+End Sub
+
+'//////////////////////////////////////////
+'//////////////////////////////////////////
+
+Function ReportFileStatus(filespec)
+	
+	Dim fso, msg
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	If (fso.FileExists(filespec)) Then
+		msg = True
+	Else
+		msg = False
+	End If
+	
+	ReportFileStatus = msg
+	
+End Function

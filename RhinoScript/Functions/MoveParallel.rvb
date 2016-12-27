@@ -1,0 +1,47 @@
+﻿Option Explicit
+
+'Script version Friday, October 14, 2011
+'Script written by Pascal
+
+'Rhino.AddStartUpScript Rhino.LastLoadedScriptFile
+'Rhino.AddAlias " ", "_NoEcho _-RunScript ()"
+
+
+
+Call Main()
+
+Sub Main()
+	dim aObj, aDir, dblDist, aDist
+	aObj = Rhino.GetObjects("Select objects to move",,,True,True)
+	if not isArray(aObj) then exit sub
+
+	aDir = Rhino.GetPoints(True,True,"Set direction base point", "Set Direction",2)
+	If not isArray(aDir) then exit sub
+	If Ubound(aDir)<> 1 then exit sub
+		
+	dim vecDir
+	
+	vecDir = Rhino.VectorUnitize(Rhino.VectorCreate (ADir(1), aDir(0)))
+	
+	aDist = constrained_get_points(vecDir)
+	
+	dblDist = Rhino.Distance(adist(0), adist(1))
+
+	Rhino.MoveObjects aObj,aDist(0), Rhino.PointAdd(aDist(0),Rhino.VectorScale(VecDir,dblDist))
+	
+End Sub
+
+Function constrained_get_points(vecDir)
+	
+	dim pt1, pt2
+	
+	pt1 = Rhino.GetPoint("Point to move from.",,,True)
+	
+	If not isArray(pt1) then exit function
+	
+	pt2 = Rhino.GetPoint( "Set distance", pt1, Rhino.PointAdd(pt1,vecDir))
+	
+	constrained_get_points = array(pt1, pt2)
+	
+End Function
+

@@ -1,0 +1,215 @@
+﻿Option Explicit
+'Script written by Pascal
+'Script version Wednesday, March 30, 2011 
+
+'Rhino.AddStartUpScript Rhino.LastLoadedScriptFile
+'Rhino.AddAlias " ", "_NoEcho _-Runscript ( )"
+
+Call Main()
+Sub Main()
+
+	Dim apt: aPt = array(0,0,0)
+	Dim sCrv: sCrv = Rhino.GetObject(,4,True)
+
+		
+	Rhino.AddLine  apt, TangentPoint(sCrv,apt)
+	
+	
+End Sub
+
+Function TangentPoint(sCrv,apt)
+	Rhino.EnableRedraw False
+	
+	Dim aBB: aBB = Rhino.BoundingBox(sCrv)
+	Dim aMid: aMid = AveragePoints(array(aBB(0), aBB(6)))
+	Dim dblLen: dblLen = qDistance(aBB(0), aBB(6))
+	Dim VecDir: VecDir = Rhino.VectorUnitize( Rhino.PointAdd(aMid, aPt))
+	Dim aTarg: aTarg = Rhino.pointAdd(aMid,Rhino.VectorScale(vecDir,dblLen))
+	Dim aZ: aZ = array(0,0,1)
+	Dim sray, aInt, intpts
+	
+	sRay = Rhino.addLine(aPt, aTarg)
+	vecDir = UnitVectorFromLine (sRay)
+	aInt = Rhino.CurveCurveIntersection(sray,sCrv)
+	Rhino.DeleteObject sray
+	Dim vecRot, PerpRay, perpRay1, perpInt, temp, atest
+	
+	If Not Rhino.IsCurveClosed(sCrv) Then
+		Dim aEnds: aEnds = Array(Rhino.CurveStartPoint(sCrv), Rhino.CurveEndPoint(sCrv))
+	
+		If Rhino.PointArrayClosestPoint(aEnds, aPt) = 1 Then aEnds = Array(Rhino.CurveEndPoint(sCrv), Rhino.CurveStartPoint(sCrv))
+
+		VecDir = Rhino.VectorUnitize(Rhino.VectorCreate(aEnds(0), aPt))
+		aTarg  = Rhino.pointAdd(aEnds(0),Rhino.VectorScale(vecDir,dblLen))
+		
+		sray = Rhino.addLine(aPt, aTarg)
+		aInt = Rhino.CurveCurveIntersection(sray,sCrv)
+		Rhino.DeleteObject sray
+
+		If Ubound(aInt) < 1   Then	
+			
+			VecDir = Rhino.VectorUnitize(Rhino.VectorCreate(aEnds(1), aPt))
+			aTarg  = Rhino.pointAdd(aEnds(1),Rhino.VectorScale(vecDir,dblLen))
+			sray = Rhino.addLine(aPt, aTarg)
+			aInt = Rhino.CurveCurveIntersection(sray,sCrv)
+			Rhino.DeleteObject sray
+			
+		End If
+	
+		If isNull(aInt(0,0)) Then 
+			MsgBox "No tangent found"
+			Exit Function
+		End If
+	End If
+	
+	
+	Dim i: i = 0
+	Dim Max: Max = 12
+	Dim aTempTarg(), n
+	n = 0
+	
+	intPts = array(aint(0,1), aInt(1,1))
+	
+	Do
+	
+		
+		If IsArray(aInt) Then
+	
+			If aInt(0,0) = 1 Then
+				
+				
+				vecRot = Rhino.VectorRotate(vecDir, 90, aZ)
+			
+				aMid = AveragePoints(array(aInt(0,1), aInt(1,1)))
+				perpRay = Rhino.AddLine(aMid,Rhino.PointAdd(aMid,Rhino.VectorScale(vecRot,dblLen)))
+				PerpInt = Rhino.CurveCurveIntersection(PerpRay, sCrv)
+				Rhino.DeleteObject PerpRay
+				If isArray(PerpInt) Then
+				If PerpInt(0,0) = 1 Then 
+					If PtBetweenPts(PerpInt(0,1), IntPts, Scrv) Then 
+						ReDim Preserve atempTarg(n)
+					
+						aTempTarg(n) = PerpInt(0,1)
+						n = n + 1
+						End If
+				End If
+				End If
+				
+				vecRot = Rhino.VectorRotate(vecDir, -90, aZ)
+			
+				perpRay = Rhino.AddLine(aMid,Rhino.PointAdd(aMid,Rhino.VectorScale(vecRot,dblLen)))
+				PerpInt = Rhino.CurveCurveIntersection(PerpRay, sCrv)
+				Rhino.DeleteObject PerpRay
+				
+				If isArray(PerpInt) Then
+					If PerpInt(0,0) = 1 Then 
+						If PtBetweenPts(PerpInt(0,1), IntPts, Scrv) Then 
+							ReDim Preserve atempTarg(n)
+					
+							aTempTarg(n) = PerpInt(0,1)
+							n = n + 1
+						End If
+					End If
+				End If
+					If n>0 Then	atarg = aTempTarg(Rhino.PointArrayClosestPoint(atempTarg, aMid))
+				Else
+
+				tangentPoint = aEnds(0)
+				Rhino.EnableRedraw True
+					Exit Function
+				End If
+		
+			
+			VecDir = Rhino.VectorUnitize(Rhino.VectorCreate(aTarg, aPt))
+			aTarg = Rhino.PointAdd(atarg, Rhino.VectorScale(VecDir, dblLen))
+			Rhino.DeleteObject sRay
+			sray = Rhino.addLine(aPt, aTarg)
+	
+			aInt = Rhino.CurveCurveIntersection(sRay,sCrv)		
+					
+		Else
+			aTest = AveragePoints(array(aInt(0,1),aInt(0,2)))
+				
+			Rhino.AddPoint Rhino.EvaluateCurve( sCrv,Rhino.CurveClosestPoint (Scrv,atest))
+			Rhino.DeleteObject sRay
+			Exit Do
+		End If
+		
+		If Ubound(aInt) > 0 Then
+			intPts = array(aint(0,1), aInt(1,1))
+		Else 
+			TangentPoint = aInt(0,1)
+			Rhino.DeleteObject sRay
+			Rhino.EnableRedraw True
+			Exit Function
+		End If
+	
+		i = i + 1
+	Loop Until i = Max
+			
+	Rhino.EnableRedraw True
+	
+End Function
+
+Function PtBetweenPts(apt, aPts, sCrv)
+	
+	PtBetweenPts = False
+	Dim Par1, Par2, apar(1)
+	
+	aPar(0) = Rhino.CurveClosestPoint(sCrv, aPts(0))
+	aPar(1) =  Rhino.CurveClosestPoint(sCrv, aPts(1))
+	If aPar(0) > aPar(1)  Then 
+		Dim temp: temp = aPar(0)
+	
+		apar(0) = apar(1)
+		apar(1) = temp
+		
+	End If
+	
+	Dim Partest: Partest = Rhino.CurveClosestPoint(sCrv, aPt)
+	If ParTest > aPar(0) And Partest < aPar(1) Then PtBetweenPts = True
+	
+	
+End Function
+
+
+Function UnitVectorFromLine(sLine)
+
+	
+	UnitVectorFromLine = Rhino.VectorUnitize(Rhino.VectorCreate(Rhino.CurveEndPoint(sLine),Rhino.CurveStartPoint(sLine)))
+
+End Function
+
+Function AveragePoints(aPts)
+	'Finds the average location of an array
+	'of points.
+
+	Dim X, Y, Z
+	Dim i
+	
+	X = 0
+	Y = 0
+	Z = 0
+
+	For i=0 To UBound (aPts)
+			
+		'add all the X values
+		X = X+aPts(i)(0)
+	
+		'add all th Y values
+		Y = Y+aPts(i)(1)			
+	
+		'add all the Z values
+		Z = Z+apts(i)(2)
+	Next
+	
+	'Divide by the number of points to
+	'get the average  for each
+	'create the output array from the 3 averages
+	AveragePoints  =array(X/(UBound(aPts)+1), Y/(UBound(aPts)+1), Z/(UBound(aPts)+1))
+
+End Function
+
+Function QDistance(aPtA,aPtB)
+	QDistance = Sqr( (aPtA(0 )- aPtB(0))^2 + (aPtA(1)- aPtB(1))^2 + (aPtA(2) - aPtB(2))^2 )
+End Function

@@ -1,0 +1,3 @@
+Function QDistance(aPtA,aPtB)
+	QDistance = Sqr( (aPtA(0 )- aPtB(0))^2 + (aPtA(1)- aPtB(1))^2 + (aPtA(2) - aPtB(2))^2 )
+End Function

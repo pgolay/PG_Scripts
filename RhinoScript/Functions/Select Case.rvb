@@ -1,0 +1,11 @@
+﻿
+	Dim str
+	str = Rhino.GetString
+	Select Case str
+		Case "a" 
+			msgbox "A"
+		Case"b"
+			msgbox "B" 
+		Case Else
+			msgBox "None of the above."
+	End Select

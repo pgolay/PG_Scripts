@@ -1,0 +1,7 @@
+﻿Sub RoundPointcoordinates(ByRef apt,intRnd)
+
+	apt(0) = round(apt(0),intRnd)
+	apt(1) = round(apt(1),intRnd)
+	apt(2) = round(apt(2),intRnd)
+	
+End Sub

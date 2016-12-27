@@ -1,0 +1,7 @@
+Function IsEven(intTest)
+	
+	IsEven= false
+	
+	If (intTest mod 2) = 0 then IsEven = true
+	
+End Function

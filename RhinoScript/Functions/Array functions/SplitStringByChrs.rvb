@@ -1,0 +1,12 @@
+﻿
+	
+Function SplitStringbyChrs(str, aChr)
+	
+	Dim sChr, i
+	For i = 0 To ubound(aChr)
+		sChr = sChr & aChr(i)
+	Next
+	SplitStringbyChrs = Rhino.StrTok(str, sChr)
+
+End Function
+

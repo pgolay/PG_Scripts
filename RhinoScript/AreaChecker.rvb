@@ -1,0 +1,30 @@
+Option Explicit
+'Script written by Pascal
+'Script version Wednesday, June 25, 2014 7:58:16 PM
+
+Rhino.AddStartUpScript Rhino.LastLoadedScriptFile()
+Rhino.addAlias "AreaChecker", "! _NoEcho _-Runscript (AreaChecker)"
+
+
+'Call AreaChecker()
+Sub AreaChecker()
+	Dim aobj, sobj, a
+	aObj = Rhino.Getobjects(, 8,, True)
+	If Not isArray(aObj) Then Exit Sub
+	
+	Rhino.UnselectAllObjects()
+	Rhino.EnableRedraw False
+	
+	For Each sObj In aObj
+		a = Rhino.SurfaceArea(sObj)
+	
+		If isNull(a) Or isEmpty(a) Then
+		
+			Rhino.SelectObject sObj
+	
+		End If
+		
+	Next
+
+	Rhino.EnableRedraw True
+End Sub

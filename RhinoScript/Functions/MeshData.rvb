@@ -1,0 +1,11 @@
+Function GetMeshData(sMesh)
+	
+	Dim aVerts: aVerts = Rhino.MeshVertices(sMesh)
+	Dim aFaceVerts: aFaceVerts = Rhino.MeshFaceVertices(sMesh)
+	Dim aFaceNorms: aFaceNorms = Rhino.MeshFaceNormals(sMesh)
+	Dim aTextCoords: aTextCoords = Rhino.MeshTextureCoordinates(sMesh)
+	Dim aVertNorms: aVertNorms = Rhino.MeshVertexNormals(sMesh)
+	
+	getMeshData = array(aVerts,aFaceVerts,aVertNorms,aTextCoords,aFaceNorms)
+	
+End Function

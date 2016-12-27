@@ -1,0 +1,21 @@
+﻿Sub CullstringFromArray(ByRef arr, str)
+	
+	Dim Result()	
+	If IsArray(arr) Then
+		Dim i : i = 0
+		Dim j : j = 0
+		For i = 0 To UBound(arr)
+
+			If (arr(i)<> str) Then
+				ReDim Preserve Result(j)
+				result(j) = arr(i)
+				j = j + 1
+			
+			End If
+	
+		Next
+	End If
+	
+	arr = Result
+	
+End Sub

@@ -1,0 +1,8 @@
+﻿
+
+Function PadDigits(val, num_digits)
+	PadDigits = Right(String(num_digits,"0") & val, num_digits)
+End Function
+ 
+Rhino.Print PadDigits(72, 3)
+Rhino.Print PadDigits(157, 3)

@@ -1,0 +1,10 @@
+  Function SumArray(arr)
+  SumArray = 0
+  If IsArray(arr) Then
+    For i = 0 To UBound(arr)
+      If IsNumeric(arr(i)) Then
+        SumArray = SumArray + arr(i)
+      End If
+    Next
+  End If
+End Function

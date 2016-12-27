@@ -1,0 +1,43 @@
+Function VectorAngle(vec1, vec2)
+	'find the angle between two vectors
+	Dim test1, test2
+	
+	test1 = Rhino.VectorUnitize(Vec1)
+	test2 = Rhino.VectorUnitize(Vec2)
+	
+	RoundPoint Test1,5
+	RoundPoint Test2,5
+	
+	Dim X: X =Rhino.IsVectorParallelTo(Test1,Test2)
+	If X =  -1 then 
+		VectorAngle = 180
+		Exit Function
+	elseIf X =1 then VectorAngle = 0
+		Exit Function
+	End If
+		
+
+	Dim DblDot : dblDot = Rhino.VectorDotProduct(Test1, Test2)
+
+	Dim dblAngle : dblAngle = Rhino.aCos(dblDot)
+	
+	If round(dblDot,5) = 1.00000 Then
+		dblAngle = 0
+	End If
+
+	If dblAngle = 0 Then 
+		VectorAngle = 0
+		Exit Function
+	Else 
+		VectorAngle = Rhino.ToDegrees(dblAngle)
+	End If
+	
+End Function
+
+Sub RoundPoint (byref aPt,intRound)
+	
+	apt(0) = round(aPt(0),IntRound)
+	apt(1) = round(aPt(1),IntRound)
+	apt(2) = round(aPt(2),IntRound)
+	
+End Sub

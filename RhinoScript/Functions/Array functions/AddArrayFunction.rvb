@@ -1,0 +1,13 @@
+﻿
+
+Function SumArray(arr)
+	Dim Sum: Sum=0
+	For Each item In arr
+		If isNumeric(item) Then
+			Sum = Sum + item
+		End If
+	Next
+	
+	SumArray = Sum
+	
+End Function

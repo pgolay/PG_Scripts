@@ -1,0 +1,19 @@
+﻿Sub ProjectPointToCurve (aPt, Crv)
+	
+	
+	Dim Plane : Plane = Rhino.ViewCPlane
+	Dim aBB : aBB = Rhino.BoundingBox(Crv,Rhino.CurrentView)
+	Dim aPlanePt : aPlanePt = Rhino.XformWorldToCPlane (aPt, Plane)
+	Dim aBBPlane :aBBPlane = PointsToCplane(aBB,Plane)
+	Dim aStart : aStart = array(aPlanePt(0), aPlanePt(1), aBbPlane(0)(2))
+	Dim aEnd : aEnd = array(aPlanePt(0), aPlanePt(1), aBbPlane(4)(2))
+	Dim aLine : aLine = array(aStart, aEnd)
+	Dim aWLine : aWLine = PointsToWorld (aLine, Plane)
+	Dim Line : Line = Rhino.AddLine(aWLine(0), aWLine(1))
+	Rhino.UnselectAllObjects
+	Rhino.SelectObject Crv
+	Rhino.SelectObject Line
+	Rhino.Command "_Intersect ", False
+	Rhino.DeleteObject Line
+		
+End Sub

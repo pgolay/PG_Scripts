@@ -1,0 +1,152 @@
+﻿Option Explicit
+'Script written by Pascal
+'Script version Wednesday, March 25, 2009 
+
+
+Function OrderObjectsInSpace(aObj)
+	
+	Dim i,n, aCen()
+	n = 0
+	Dim Order
+	Set Order = CreateObject("Scripting.Dictionary")
+	
+	For i = 0 To UBound(aObj)
+		
+		ReDim Preserve aCen(n)
+		aCen(n) = GetBBCen(array(aobj(i)))
+		ReDim Preserve aPts(n)
+		aPts(n) = Rhino.AddPoint (aCen(n))
+		Order.Add Rhino.Pt2Str(aCen(n)),aobj(i)
+		n = n + 1
+		
+	Next
+	
+	Dim aBB: aBB = Rhino.BoundingBox(aPts)
+	Rhino.DeleteObjects aPts
+	
+	If isUpperBound(aCen) Then
+		n = 0
+		Dim atest: aTest = Rhino.SortPoints(aCen)
+	End If
+	
+	For i = 0 To Ubound(aTest)
+		
+		'str = Rhino.Pt2Str(aTest(i))
+		ReDim Preserve aOrdered(n)
+		aOrdered(n) = Order.Item (Rhino.Pt2Str(aTest(i)))
+		n = n + 1
+	Next
+	
+	'	For i = 0 To Ubound(aOrdered)
+'		Rhino.AddTextDot i+1,aTest(i)
+'	Next
+	
+	Set order = Nothing
+	OrderObjectsInSpace = aOrdered
+End Function
+
+
+Function GetBBCen(aObj)
+	
+	Dim aBB: aBB = Rhino.BoundingBox(aObj)
+	GetBBCen = AveragePoints(aBB)
+	
+End Function
+
+
+Function GetBBDir(aBB)
+
+	Dim X: X = Rhino.Distance(aBB(0), aBB(1))
+	Dim Y: Y = Rhino.Distance(aBB(0),aBB(3))
+	Dim Z: Z = Rhino.Distance(aBB(0),aBB(4))
+	Dim aDir: aDir = array(X,Y,Z)
+
+	Dim i, n, aOrdered()
+	n = 0
+	
+	Dim Dirs
+	Set Dirs = CreateObject("Scripting.Dictionary")
+	
+	For i = 0 To 2
+		dirs.add CStr(aDir(i)), i
+	Next
+	
+	Dim aSort: aSort = Rhino.SortNumbers(aDir, False)
+	Dim test
+	
+	For i = 0 To 2
+	
+		ReDim Preserve aOrdered(n)
+		aOrdered(n) = CDbl(dirs.item (CStr(aSort(i))))
+		n = n + 1
+
+	Next
+	
+	
+	If Rhino.PointCompare(aOrdered , array(0,1,2)) Then
+		GetBBDir = 0
+	ElseIf Rhino.PointCompare(aOrdered , array(0,2,1)) Then
+		GetBBDir = 1
+	ElseIf Rhino.PointCompare(aOrdered , array(1,0,2)) Then
+		GetBBDir = 2
+	ElseIf Rhino.PointCompare(aOrdered ,array(1,2,0)) Then
+		GetBBDir = 3
+	ElseIf Rhino.PointCompare(aOrdered , array(2,0,1)) Then
+		GetBBDir = 4
+	ElseIf Rhino.PointCompare(aOrdered , array(2,1,0)) Then
+		GetBBDir = 5
+
+	End If
+	
+	Set Dirs = Nothing
+	
+	Rhino.Print Join(aOrdered,",")
+	
+End Function
+
+Function IsUpperBound(ByRef arr)
+
+	IsUpperBound = False
+
+	If IsArray(arr) Then
+
+		On Error Resume Next
+
+		UBound arr
+
+		If Err.Number = 0 Then IsUpperBound = True
+
+	End If
+
+End Function
+
+
+Function AveragePoints(arrPts)
+	'Finds the average location of an array
+	'of points.
+
+	Dim X, Y, Z
+	Dim i
+	
+	X = 0
+	Y = 0
+	Z = 0
+
+	For i=0 To UBound (arrPts)
+			
+		'add all the X values
+		X = X+arrPts(i)(0)
+	
+		'add all th Y values
+		Y = Y+arrPts(i)(1)			
+	
+		'add all the Z values
+		Z = Z+arrpts(i)(2)
+	Next
+	
+	'Divide by the number of points to
+	'get the average  for each
+	'create the output array from the 3 averages
+	AveragePoints  =array(X/(UBound(arrPts)+1), Y/(UBound(arrPts)+1), Z/(UBound(arrPts)+1))
+
+End Function

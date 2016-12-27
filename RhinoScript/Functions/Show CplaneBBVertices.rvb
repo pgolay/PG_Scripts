@@ -1,0 +1,78 @@
+﻿Option Explicit
+'Script written by Pascal
+'Script copyrighted by RMA
+'Script version Monday, October 08, 2007
+
+Call 	ShowBBVetices
+Sub 	ShowBBVetices()
+	
+	
+	Dim aObj: aObj = Rhino.GetObjects(,,,True,True)
+	
+	If Not isArray(aObj) Then Exit Sub
+	
+	Dim aBB: aBB = Rhino.BoundingBox(aObj,Rhino.CurrentView,False)
+	aBB = CplaneToWorldPts(aBB)
+	
+	Rhino.EnableRedraw(False)
+	Dim i, aLines(), n, aDots()
+	
+	For i = 0 To UBound(aBB)
+		ReDim Preserve aDots(i)
+		aDots(i) =Rhino.AddTextDot(i,aBB(i))
+	Next
+	
+	For i = 0 To 2
+		
+		ReDim Preserve aLines(n)
+		aLines(n) =Rhino.AddLine (aBB(i), aBB(i+1))
+		n = n + 1
+	Next
+	
+	For i = 4 To 6
+		
+		ReDim Preserve aLines(n)
+		aLines(n) =Rhino.AddLine (aBB(i), aBB(i+1))
+		n = n +1
+	Next
+	
+	
+	ReDim Preserve aLines(n)
+	aLines(n) =Rhino.AddLine (aBB(7),aBB(4))
+	n = n +1
+	
+	ReDim Preserve aLines(n)
+	aLines(n) =Rhino.AddLine (aBB(3), aBB(0))
+	n = n +1
+	
+	For i = 0 To 3
+		
+		ReDim Preserve aLines(n)
+		aLines(n) =	Rhino.addLine (aBB(i), aBB(i+4))
+		n = n + 1
+	Next
+	
+	Dim GrpDots: GrpDots = Rhino.AddGroup
+	Dim GrpLines: GrpLines = Rhino.AddGroup
+	
+	Rhino.AddObjectsToGroup aDots, GrpDots
+	Rhino.addObjectsToGroup aLines, GrpLines
+	Rhino.EnableRedraw(True)
+
+End Sub
+
+
+Function CplaneToWorldPts(arrPts)
+
+	Dim arrPlane, i, result
+	arrPlane = Rhino.ViewCplane
+	For i = 0 To UBound (arrPts)
+
+		Result = Rhino.XformCPlaneToWorld (arrPts(i), arrPlane)
+		ReDim Preserve arrOutput(i)
+		arrOutput(i) = Result
+	Next
+
+	CplaneToWorldPts = arrOutput
+
+End Function

@@ -1,0 +1,13 @@
+﻿Function ArcToCircle(sCrv, BlnDelete)
+	dim	Cen, VecX, VecY, Plane
+
+	if Rhino.IsArc(sCrv) then
+		Cen = Rhino.ArcCenterPoint(sCrv)
+		VecX = Rhino.VectorCreate(Rhino.CurveEndPoint(sCrv), Cen)
+		VecY = Rhino.VectorCreate(Rhino.CurveStartPoint(sCrv), Cen)
+		PLane = Rhino.PlaneFromFrame(Rhino.ArcCenterPoint(sCrv),VecX,VecY)
+		Rhino.addCircle Plane,Rhino.ArcRadius(sCrv)
+		if BlnDelete = True then	Rhino.DeleteObject sCrv
+	End If
+	
+End Function
