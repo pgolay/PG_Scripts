@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-16"?>
+<RhinoScriptCompilerProject>
+  <Plugin>
+    <PluginName>DimMidpoint</PluginName>
+    <PluginFolder>C:\Users\Pascal\Google Drive\Scripting\DimPt\</PluginFolder>
+    <AuthorName>Pascal</AuthorName>
+    <AuthorEmail>pascal@mcneel.com</AuthorEmail>
+    <AuthorPhone />
+    <AuthorAddress>3670 Woodland Park Ave.N.
+Seattle, WA
+98103</AuthorAddress>
+    <AuthorCountry>USA</AuthorCountry>
+    <AuthorWebsite />
+    <UpdateURL />
+    <CopyrightMessage>Loading DimMidpoint plug-in.</CopyrightMessage>
+    <RhinoCommonOverride>C:\Users\Pascal\Google Drive\Scripting\V5 SR9 RhinoCommon\RhinoCommon.dll</RhinoCommonOverride>
+  </Plugin>
+  <Commands>
+    <!--Compiled Script: DimMid-->
+    <Command>
+      <Name>DimMid</Name>
+      <Path>C:\Users\Pascal\Google Drive\Scripting\DimPt\DimMid.py</Path>
+      <Type>Normal</Type>
+    </Command>
+  </Commands>
+  <Menu />
+</RhinoScriptCompilerProject>

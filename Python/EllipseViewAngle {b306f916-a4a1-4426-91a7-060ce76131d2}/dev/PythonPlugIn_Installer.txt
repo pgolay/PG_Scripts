@@ -1,0 +1,25 @@
+
+1) Create a __plugin__.py file in your plug-in directory 
+ 
+2) In that file, put: 
+  
+  id="{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}"
+  version="1.0.x.x 
+  title="Plug-in Name 
+  
+3) Zip the __plugin__.py and other .py files into a zip file. 
+
+4) Rename the zip file to MyPlugin.rhi 
+ 
+5) Send it on it's merry way. 
+
+e.g.
+id="{1e010ce0-13c0-4a59-8a4f-fb607657962b}"
+version="1.0.0.3" 
+title="InstallTest" 
+
+Beware: if you have a line that contans a "#" in a string, it will not be properly handled:
+// TODO: This does not correctly handle # characters embedded in strings:
+//    'title="The #1 Plug-in" # My title has a # in it!'
+// becomes
+//    'title="The '

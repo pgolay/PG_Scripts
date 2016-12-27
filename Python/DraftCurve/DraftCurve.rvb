@@ -1,0 +1,77 @@
+Option Explicit
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "DraftCurve", "noEcho _-Runscript (DraftCurve)"
+
+Private old_dAng
+	
+If isEmpty(old_dAng) Then
+	old_dAng = 3
+End If
+
+'Call DraftCurve()
+
+Sub DraftCurve()
+	
+	Const rhSrf = 8
+	
+	Dim pick, srf, srf_pt, srf_t, pt, dblAngle, p,q, temp, dAng, tempCrv, temp1
+	Dim aPts()
+	
+	Dim sSrf : sSrf = Rhino.GetObject("Select surface", 8, True)
+	If isNull(sSrf) Then Exit Sub
+	
+	Dim sCrv: sCrv = Rhino.GetObject("Select the silhouette curve", 4)
+	If isNull(sCrv) Then Exit Sub
+	
+	dAng = Rhino.GetReal("Draft angle?", old_dAng, 0, 90)
+	If isNull(dAng) Then Exit Sub
+	
+	old_dAng = dAng
+	Dim p2d, p3d
+	p = 0
+	q = 0
+	Dim aPtObj()
+	
+	Rhino.UnselectAllObjects()
+	Do 
+		p3d = Rhino.GetPointOnCurve(sCrv)
+				
+		If IsArray(p3d) Then
+
+			p2d = Rhino.SurfaceClosestPoint(sSrf, p3d)
+	
+			temp = Rhino.SurfaceDraftAnglePoint(sSrf, p2d, dAng)
+			If isArray(temp) Then
+				ReDim Preserve aPts(p)
+				aPts(p) = temp(0)
+				p = p + 1
+				ReDim Preserve aPtObj(q)
+				aPtObj(q) = Rhino.AddPoint(temp(0))
+				q = q + 1
+			End If
+		End If 
+		
+		If q > 1 Then
+			
+			temp1 = Rhino.AddInterpCurveEx(apts, 3, 2)
+			
+			If Not isNull(temp1) Then
+				If Not isEmpty(tempCrv) Then
+					Rhino.DeleteObject tempCrv
+				End If
+				tempCrv = temp1
+				Rhino.SelectObject tempCrv	
+			End If
+			
+		End If
+	
+	Loop While isArray(p3d)
+	
+	Rhino.DeleteObjects aPtObj
+	
+	Dim draftCrv:DraftCrv = Rhino.PullCurve(sSrf, tempCrv, True)
+	
+	If Not isNull(draftCrv) Then Rhino.SelectObjects draftCrv
+	
+End Sub

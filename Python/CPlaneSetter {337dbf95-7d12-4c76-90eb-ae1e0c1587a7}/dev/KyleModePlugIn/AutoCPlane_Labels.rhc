@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-16"?>
+<RhinoScriptCompilerProject>
+  <Plugin>
+    <PluginName>AutoCPlane</PluginName>
+    <PluginFolder>C:\Users\pascal\Google Drive\Scripting\CPlaneSetter {337dbf95-7d12-4c76-90eb-ae1e0c1587a7}\dev\KyleModePlugIn\</PluginFolder>
+    <AuthorName>Pascal</AuthorName>
+    <AuthorEmail>pascal@mcneel.com</AuthorEmail>
+    <AuthorPhone />
+    <AuthorAddress>3670 Woodland Park Ave.N.
+Seattle, WA
+98103</AuthorAddress>
+    <AuthorCountry>USA</AuthorCountry>
+    <AuthorWebsite />
+    <UpdateURL />
+    <CopyrightMessage>Loading AutoCPlane plug-in.</CopyrightMessage>
+    <RhinoCommonOverride>C:\Users\pascal\Google Drive\Scripting\V5 SR9 RhinoCommon\RhinoCommon.dll</RhinoCommonOverride>
+  </Plugin>
+  <Commands>
+    <!--Compiled Script: AutoCPlane-->
+    <Command>
+      <Name>AutoCPlane</Name>
+      <Path>C:\Users\pascal\Google Drive\Scripting\CPlaneSetter {337dbf95-7d12-4c76-90eb-ae1e0c1587a7}\dev\KyleModePlugIn\KyleMode_NoViewSnap_Label_opt3.py</Path>
+      <Type>Normal</Type>
+    </Command>
+  </Commands>
+  <Menu />
+</RhinoScriptCompilerProject>

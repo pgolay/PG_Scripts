@@ -1,0 +1,3 @@
+  id="{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}"
+  version="1.0.x.x 
+  title="Plug-in Name 

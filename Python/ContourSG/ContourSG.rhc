@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-16"?>
+<RhinoScriptCompilerProject>
+  <Plugin>
+    <PluginName>ContourSG</PluginName>
+    <PluginFolder>C:\Users\pascal\Google Drive\Scripting\ContourSG\</PluginFolder>
+    <AuthorName>Pascal</AuthorName>
+    <AuthorEmail>pascal@mcneel.com</AuthorEmail>
+    <AuthorPhone />
+    <AuthorAddress>3670 Woodland Park Ave.N.
+Seattle, WA
+98103</AuthorAddress>
+    <AuthorCountry>USA</AuthorCountry>
+    <AuthorWebsite>www.rhino3d.com</AuthorWebsite>
+    <UpdateURL />
+    <CopyrightMessage>Loading ContourSG Plug-in.</CopyrightMessage>
+    <RhinoCommonOverride>C:\Users\pascal\Google Drive\Scripting\V5 SR9 RhinoCommon\RhinoCommon.dll</RhinoCommonOverride>
+  </Plugin>
+  <Commands>
+    <!--Compiled Script: ContourSG-->
+    <Command>
+      <Name>ContourSG</Name>
+      <Path>C:\Users\pascal\Google Drive\Scripting\ContourSG\ContourSG.py</Path>
+      <Type>Normal</Type>
+    </Command>
+  </Commands>
+  <Menu />
+</RhinoScriptCompilerProject>

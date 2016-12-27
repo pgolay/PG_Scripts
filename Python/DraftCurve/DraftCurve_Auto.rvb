@@ -1,0 +1,173 @@
+Option Explicit
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "DraftCurve", "noEcho _-Runscript (DraftCurve)"
+
+Private old_dAng, oldDiv
+
+If IsEmpty(oldDiv) Then
+	oldDiv = 32
+End If
+
+	
+If isEmpty(old_dAng) Then
+	old_dAng = 3
+End If
+
+'Call DraftCurve()
+
+Sub DraftCurve()
+	
+	Const rhSrf = 8
+	
+	Dim pick, srf, srf_pt, srf_t, pt, dblAngle, p,q, temp, dAng, tempCrv, temp1
+	Dim aPts()
+	
+	Dim sSrf : sSrf = Rhino.GetObject("Select surface", 8, True)
+	If isNull(sSrf) Then Exit Sub
+	
+	Dim sCrv: sCrv = Rhino.GetObject("Select the silhouette curve", 4)
+	If isNull(sCrv) Then Exit Sub
+	
+	dAng = Rhino.GetReal("Draft angle?", old_dAng, 0, 90)
+	If isNull(dAng) Then Exit Sub
+	old_dAng = dAng
+	
+	Rhino.UnselectAllObjects()
+	
+	MakeDraftCurves sSrf, sCrv, dAng
+	
+End Sub
+
+Function CreateCurvesAndPoints(sSrf, sCrv, dAng, divNum)
+	
+	Dim temp, tempCrv, aPtObj(), aPts(),aMiss(), p, q, r, s
+	Dim p2d, p3d
+
+	p = 0
+	q = 0
+	r = 0
+	s = 0
+	Dim aDiv: aDiv = Rhino.DivideCurve(sCrv, divNum, False)
+
+	Rhino.EnableRedraw False
+	
+	For Each p3d In aDiv
+		p2d = Rhino.SurfaceClosestPoint(sSrf, p3d)
+		temp = Rhino.SurfaceDraftAnglePoint(sSrf, p2d, dAng)
+		If isArray(temp) Then
+			ReDim Preserve aPts(p)
+			aPts(p) = temp(0)
+			p = p + 1
+			ReDim Preserve aPtObj(q)
+			aPtObj(q) = Rhino.AddPoint(temp(0))
+			q = q + 1
+			
+		Else
+			ReDim Preserve aMiss(s)
+			aMiss(s) = r
+			s = s + 1	
+		End If
+		r = r + 1
+	Next
+	
+	tempCrv = Rhino.AddInterpCurveEx(apts, 3, 2)
+	
+	CreateCurvesAndPoints = array(tempCrv, aptObj, aMiss)
+	
+End Function
+
+Sub MakeDraftCurves(sSrf, sCrv, dAng)
+	Dim divNum: divNum = oldDiv
+	
+	Dim tempCrv1, TempCrv2, aptObj1,  aptObj2, ends1, ends2
+	
+	Dim aResults: aResults = CreateCurvesAndPoints(sSrf, sCrv, dAng, divNum)
+	If Not isArray(aResults) Then Exit Sub
+	
+	tempCrv1 = aresults(0)
+	aptObj1 = aresults(1)
+	ends1 = aResults(2)
+	
+	Rhino.UnselectAllObjects()
+	Rhino.SelectObject sSrf
+	Rhino.Command "Flip"
+	Rhino.UnselectAllObjects()
+	
+	aResults = CreateCurvesAndPoints(sSrf, sCrv, dAng, divNum)
+	If Not isArray(aResults) Then
+		Rhino.DeleteObjects aPtobj
+		Exit Sub
+		Rhino.EnableRedraw True
+	End If
+	
+	tempCrv2 = aresults(0)
+	aptObj2 = aResults(1)
+	ends2 = aResults(2)
+	
+	Do
+		Rhino.EnableRedraw True	
+		divNum = Rhino.GetInteger("Set curve samples", oldDiv, 3)
+	
+		If IsNull(divNum) Or divNum = oldDiv Then
+			Rhino.UnselectAllObjects()
+			Rhino.DeleteObjects aptobj1
+			Rhino.DeleteObjects aptobj2
+			
+			Dim aPull1, aPull2
+			If Not isNull(tempCrv1) Then 
+				aPull1 = Rhino.PullCurve(sSrf, TempCrv1)
+				Rhino.DeleteObject tempCrv1
+				
+			End If
+			
+			If Not isNull(tempCrv2) Then 
+				aPull2 = Rhino.PullCurve(sSrf, TempCrv2)
+				Rhino.DeleteObject tempCrv2
+			
+			End If
+			If isArray(aPull1) Then Rhino.SelectObjects aPull1
+			If isArray(aPull2) Then Rhino.SelectObjects aPull2
+			
+			If isArray(ends1) Or IsArray(ends2) Then
+				Rhino.Print "At least one end of the draft curves most likely did not hit the edge of the surface."
+			End If
+			Exit Sub
+		
+		Else
+		
+			Rhino.EnableRedraw False
+			oldDiv = divNum
+			Rhino.DeleteObjects aPtObj1
+			Rhino.DeleteObjects aPtObj2
+
+			Rhino.DeleteObject tempCrv1
+			Rhino.DeleteObject tempCrv2
+		
+			aResults = CreateCurvesAndPoints(sSrf, sCrv, dAng, divNum)
+			tempCrv1 = aresults(0)
+			aptObj1 = aResults(1)
+			ends1 = aResults(2)
+			Rhino.UnselectAllObjects()
+			Rhino.SelectObject sSrf
+		
+			Rhino.Command "Flip"
+			Rhino.UnselectAllObjects()
+	
+			aResults = CreateCurvesAndPoints(sSrf, sCrv, dAng, divNum)
+			tempCrv1 = aresults(0)
+			aptObj2 = aResults(1)
+			ends2 = aResults(2)
+			If Not isArray(aResults) Then
+				Rhino.DeleteObjects aPtobj
+				Exit Sub
+				Rhino.EnableRedraw True
+			End If
+			Rhino.EnableRedraw True	
+		
+		End If
+	Loop While Not IsNull(divNum)
+	
+
+	
+End Sub
