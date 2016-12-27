@@ -1,0 +1,742 @@
+﻿Option explicit
+Sub DeselectList
+  
+	Dim arrSel, arrList(30)
+  
+	ArrSel = Rhino.SelectedObjects
+  
+	If Not IsArray(arrSel) Then
+		Rhino.Print "No objects are selected"
+		Exit Sub
+	End If
+    
+      
+	arrList(0) = "Arcs"
+	arrList(1) = "Block Instances"
+	arrList(2) = "Circles"
+	arrList(3) = "Closed Curves"
+	arrList(4) = "Closed Meshes"
+	arrList(5) = "Closed Polysurfaces"
+	arrList(6) = "Closed Surfaces"
+	arrList(7) = "Curves"
+	arrList(8) = "Directional Lights"
+	arrList(9) = "Ellipses"
+	arrList(10) = "Leaders"
+	arrList(11) = "Lights"
+	arrList(12) = "Linear Dimensions"
+	arrList(13) = "Linear Lights"
+	arrList(14) = "Lines"
+	arrList(15) = "Meshes"
+	arrList(16) = "Open Curves"
+	arrList(17) = "Open Meshes"
+	arrList(18) = "Open Polysurfaces"
+	arrList(19) = "Open Surfaces"
+	arrList(20) = "Points"
+	arrList(21) = "Point Clouds"
+	arrList(22) = "Pointlights"
+	arrList(23) = "Polycurves"
+	arrList(24) = "Polylines"
+	arrList(25) = "Polysurfaces"
+	arrList(26) = "Rectangular Lights"
+	arrList(27) = "Spotlights"
+	arrList(28) = "Surfaces"
+	arrList(29) = "Text"
+	arrList(30) = "Text Dots"
+
+
+	Dim arrValues(30), i, Bound
+	Bound = UBound (arrList)
+  
+	For i = 0 To Bound 
+		arrValues(i) = False
+	Next
+	
+	Dim arrResult
+	arrResult = Rhino.CheckListBox(arrList, arrValues)
+	
+	If IsArray(arrResult) Then
+  
+		Rhino.EnableRedraw(False)  
+		For i = 0 To 27 
+			If arrResult(i) = True Then
+				MatchUpResult (arrList(i))
+			End If
+		Next
+	Else 
+		Rhino.EnableRedraw(True) 
+		Exit Sub
+	End If
+  
+	Rhino.EnableRedraw(True)
+End Sub
+  
+'////////////////////////////////
+'////////////////////////////////
+
+Sub MatchUpResult (strResult)
+  
+	If strResult = "Arcs" Then
+		DeselectArcs
+	ElseIf strResult = "Block Instances" Then
+		DelesectBlocks
+	ElseIf strResult = "Circles" Then
+		DeselectCircles
+	ElseIf strResult = "Closed Curves" Then
+		DeselectClosedCurves
+	ElseIf strResult = "Closed Meshes" Then
+		DeselectClosedMeshes
+	ElseIf strResult = "Closed Polysurfaces" Then
+		DeselectClosedPolySurfaces
+	ElseIf strResult = "Closed Surfaces" Then
+		DeslectClosedSurfaces
+	ElseIf strResult = "Curves" Then
+		DeselectCurves
+	ElseIf strResult = "Directional Lights" Then
+		DeselectDirectionalLights
+	ElseIf strResult = "Ellipses" Then
+		DeselectEllipses
+	ElseIf strResult = "Leaders" Then
+		DeselectLeaders
+	ElseIf strResult = "Lights" Then
+		DeselectLights
+	ElseIf strResult = "Linear Dimensions" Then
+		DeselectLinearDimensions
+	ElseIf strResult = "Linear Lights" Then
+		DeselectLinearLights
+	ElseIf strResult = "Lines" Then
+		DeselectLines
+	ElseIf strResult = "Meshes" Then
+		DeselectMeshes
+	ElseIf strResult = "Open Curves" Then
+		DeselectOpenCurves
+	ElseIf strResult = "Open Meshes" Then
+		DeselectOpenMeshes
+	ElseIf strResult = "Open Polysurfaces" Then
+		DeselectOpenPOlySurfaces
+	ElseIf strResult = "Open Surfaces" Then
+		DeselectOpenSurfaces
+	ElseIf strResult = "Points" Then
+		DeselectPoints
+	ElseIf strResult = "Point Clouds" Then
+		DeselectPointClouds
+	ElseIf strResult = "Pointlights" Then
+		DeselectPointLights
+	ElseIf strResult = "Polycurves" Then
+		DeselectPolycurves
+	ElseIf strResult = "Polylines" Then
+		DeselectPolylines
+	ElseIf strResult = "Polysurfaces" Then
+		DeselectPolySurfaces
+	ElseIf strResult = "Rectangular Lights" Then
+		DeselectRectangularLights
+	ElseIf strResult = "Spotlights" Then
+		DeselectSpotlights
+	ElseIf strResult = "Surfaces" Then
+		DeselectSurfaces
+	ElseIf strResult = "Text" Then
+		DeselectText
+	ElseIf strResult = "TextDots" Then
+		DeselecttextDots  
+	End If
+  
+End Sub
+
+'Deselection of selected objects by type
+
+Sub DeselectCurves
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsCurve(strObj) Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectClosedCurves
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsCurve(strObj) And Rhino.IsCurveClosed(strObj) Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+
+'////////////////////////////////
+'////////////////////////////////des
+Sub DeselectOpenCurves
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsCurve(strObj) And Not Rhino.IsCurveClosed(strObj) Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectSurfaces
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsSurface(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectPolySurfaces
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsPolySurface(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectClosedSurfaces
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj = Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsSurface(strObj)And _
+				Rhino.IsSurfaceClosed(strObj,0) And _
+				Rhino.IsSurfaceClosed(strObj,1) Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectOpenSurfaces
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsSurface(strObj)And Not _
+				Rhino.IsSurfaceClosed(strObj,0) And Not _
+				Rhino.IsSurfaceClosed(strObj,1) Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectClosedPolySurfaces
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsPolySurface(strObj) And Rhino.IsPolysurfaceClosed(strObj) Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectOpenPolySurfaces
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsPolySurface(strObj) And Not Rhino.IsPolysurfaceClosed(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectMeshes
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsMesh(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectClosedMeshes
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsMesh(strObj)And Rhino.IsMeshClosed(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectOpenMeshes
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsMesh(strObj)And Not Rhino.IsMeshClosed(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectPoints
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.Ispoint(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectPointClouds
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsPointCloud(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectLines
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsLine(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectPolyCurves
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsPolyCurve(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectPolyLines
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsPolyLine(strObj) And Not Rhino.IsLine(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectArcs
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsArc(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectCircles
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsCircle(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectEllipses
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsEllipse(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectBlocks
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrobj) Then
+		For Each strObj In arrObj
+			If Rhino.isBlockInstance(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectLeaders
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsLeader(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectText
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsText(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectTextDots
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsTextDot(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectLinearDimensions
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsLinearDimension(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectDimensions
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsDimension(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectLights 
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects(True)
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsLight(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectSpotLights 
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects(True)
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsSpotLight(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectPointLights 
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects(True)
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsPointLight(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectRectangularLights 
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects(True)
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsRectangularLight(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectLinearLights 
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects (True)
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsLinearLight(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'////////////////////////////////
+'////////////////////////////////
+
+Sub DeselectDirectionalLights 
+	Rhino.EnableRedraw(False)
+	Dim arrObj, strObj
+	arrObj=Rhino.SelectedObjects (True)
+	If IsArray(arrObj) Then
+		For Each strObj In arrObj
+			If Rhino.IsDirectionalLight(strObj)Then
+				Rhino.UnselectObject(strObj)
+			End If
+		Next
+	End If
+	Rhino.EnableRedraw(True)
+End Sub
+
+'Delete or comment out the next line if you do not want Rhino to load 
+'this script at startup
+
+Rhino.AddStartUpScript Rhino.LastLoadedScriptFile
+
+
+    
+	'////////////////////////////////
+	'////////////////////////////////
+
+
+	'Delete or comment out this section if you do not want Rhino to 
+	'add aliases for running the scripts in this file.
+
+
+Rhino.AddAlias "DeselectPoints", "_-Runscript DeselectPoints"
+Rhino.AddAlias "DeselectPointClouds", "_-Runscript DeselectPointClouds"
+Rhino.AddAlias "DeselectCurves", "_-Runscript DeselectCurves"
+Rhino.AddAlias "DeselectClosedCurves", "_-Runscript DeselectClosedCurves"
+Rhino.AddAlias "DeselectOpenCurves", "_-Runscript DeselectOpenCurves"
+Rhino.AddAlias "DeselectPolyCurves", "_-Runscript DeselectPolyCurves"
+Rhino.AddAlias "DeselectCircles", "_-Runscript DeselectCircles"
+Rhino.AddAlias "DeselectArcs", "_-Runscript DeselectArcs"
+Rhino.AddAlias "DeselectEllipses", "_-Runscript DeselectEllipses"
+Rhino.AddAlias "DeselectLines", "_-Runscript DeselectLines"
+Rhino.AddAlias "DeselectPolylines", "_-Runscript DeselectPolylines"
+Rhino.AddAlias "DeselectSurfaces", "_-Runscript DeselectSurfaces"
+Rhino.AddAlias "DeselectOpenSurfaces", "_-Runscript DeselectOpenSurfaces"
+Rhino.AddAlias "DeselectClosedSurfaces", "_-Runscript DeselectClosedSurfaces"
+Rhino.AddAlias "DeselectPolySurfaces", "_-Runscript DeselectPolySurfaces"
+Rhino.AddAlias "DeselectOpenPolySurfaces", "_-Runscript DeselectOpenPolySurfaces"
+Rhino.AddAlias "DeselectClosedPolySurfaces", "_-Runscript DeselectClosedPolySurfaces"
+Rhino.AddAlias "DeselectMeshes", "_-Runscript DeselectMeshes"
+Rhino.AddAlias "DeselectText", "_-Runscript DeselectText"
+Rhino.AddAlias "DeselectTextDots", "_-Runscript DeselectTextDots"
+Rhino.AddAlias "DeselectLeaders", "_-Runscript DeselectLeaders"
+Rhino.AddAlias "DeselectDimensions", "_-Runscript DeselectDimensions"
+Rhino.AddAlias "DeselectLinearDimensions", "_-Runscript DeselectLinearDimensions"
+Rhino.AddAlias "DeselectBlocks", "_-Runscript DeselectBlocks"
+Rhino.AddAlias "DeselectLights", "_-Runscript DeselectLights"
+Rhino.AddAlias "DeselectSpotlights", "_-Runscript DeselectSpotLights"
+Rhino.AddAlias "DeselectPointLights", "_-Runscript DeselectpointLights"
+Rhino.AddAlias "DeselectDirectionalLights", "_-Runscript DeselectDirectionalLights"
+Rhino.AddAlias "DeselectRectangularLights", "_-Runscript DeselectRectangularLights"
+Rhino.AddAlias "DeselectLinearLights", "_-Runscript DeselectLinearLights"
+Rhino.AddAlias "DeselectOpenMeshes", "_-Runscript DeselectOpenMeshes"
+Rhino.AddAlias "DeselectClosedMeshes", "_-Runscript DeselectClosedMeshes"
+
+Rhino.AddAlias "DeselectList", "_-Runscript DeselectList"
+
+'////////////////////////////////
+'////////////////////////////////

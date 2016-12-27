@@ -1,0 +1,658 @@
+﻿Option Explicit
+'Script written by Pascal
+'RMA
+'Script version Sunday, March 23, 2008
+
+
+Private sOldSymPlane
+If isempty (sOldSymPlane) Then
+	sOldSymPlane = "Auto"
+End If
+
+Rhino.AddAlias "CurveSymmetry", "_noEcho _-Runscript CurveSymmetry"
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+
+'rearranges a curve to be symmetrical about a plane in space.
+Sub CurveSymmetry()
+	
+	Dim M: M = False'polycurve selection checker
+	Dim sCrv
+	
+	Do
+		Dim acrv :aCrv = Rhino.GetCurveObject("Select curve near the end to keep",False,True)
+		If Not isArray(aCrv) Then Exit Sub
+		
+		sCrv = aCrv(0)' the curve
+		
+		'reject polycurves and closed curves
+		If Rhino.IsPolycurve(sCrv) Or  Rhino.IsCurveClosed(sCrv) Then
+			M = True
+			msgBox "Polycurves and closed curves are not supported." &vbNewLine &"Please select another curve or Esc to cancel."
+		Else M = False
+		End If
+		
+	Loop Until M = False
+		
+	
+	Dim CrvEnd, Param
+	Param = aCrv(4)'the curve pick point parameter
+	
+	'If the curve is not selected by picking (window or other),
+	'Then use the curve start point
+	
+	If aCrv(2) <> 1 Then
+		CrvEnd = 0
+	Else CrvEnd = GetCurveEnd(sCrv,param)
+	End If
+	
+	Dim CrntPlane: CrntPlane = Rhino.ViewCplane
+	'Rhino.EnableRedraw(False)
+	
+	
+	If Not Rhino.IsArc(sCrv) And Not Rhino.IsLine(sCrv) Then
+		
+		Dim aBB: aBB = Rhino.BoundingBox(sCrv,Rhino.CurrentView)
+		Dim lenDiag: lenDiag = Rhino.Distance(aBB(0), abb(6))
+		Dim aSymPlanes: aSymPlanes = Array("Auto","XAuto","YAuto","User","3pt")
+		Dim aWeights: aWeights = Rhino.CurveWeights(sCrv)
+		Dim sSymPlane: sSymPlane = Rhino.GetString("Symmetry location", sOldSymPlane, aSymPlanes)
+	
+		If Not isNull(sSymPlane) Then
+			If IsStringInArray(sSymPlane,aSymPlanes, 0) Then
+				sOldSymPlane =UCase(left(sSymPlane,1)) & lCase(Right(sSymPlane,len(sSymPlane)-1))
+			End If
+		Else Exit Sub
+		End If
+	
+		Dim aCV(),sNewCrv , aCVdata, Weights(), n
+		
+		Dim aSymPlane, aSymAxis, sDir
+		
+		If UCase(sSymPlane) = "AUTO" Then
+			
+			sDir = "NONE"
+			aSymPlane = GetAutoSymPlaneDir(sCrv,sDir)
+			If Not IsArray(aSymPlane) Then Exit Sub
+		ElseIf UCase(sSymPlane) = "XAUTO" Then
+			
+			sDir = "X"
+			aSymPlane = GetAutoSymPlaneDir(sCrv,sDir)
+			If Not IsArray(aSymPlane) Then Exit Sub
+		ElseIf UCase(sSymPlane) = "YAUTO" Then
+			
+			sDir = "Y"
+			aSymPlane = GetAutoSymPlaneDir(sCrv,sDir)
+			If Not IsArray(aSymPlane) Then Exit Sub
+		ElseIf UCase(sSymPlane) = "USER" Then
+			
+			Rhino.EnableRedraw(True)
+			aSymAxis = Rhino.GetPoints(True,True,"First point","Second point",2)
+			If Not IsArray(aSymAxis) Then Exit Sub
+			Rhino.EnableRedraw(False)
+			
+			If Ubound(aSymAxis)<>1 Then
+				Rhino.EnableRedraw(True)
+				Exit Sub
+			End If
+			
+			Dim aAxis1Plane: aAxis1Plane = Rhino.XformWorldToCPlane(aSymAxis(0),CrntPlane)
+			Dim ZAxisPlane: ZaxisPlane = Array(aAxis1Plane(0), aAxis1Plane(1),aAxis1Plane(2)+1)
+			Dim Zaxis: ZAxis = Rhino.XformCPlaneToWorld(ZAxisPlane, CrntPlane)
+			aSymPlane = Rhino.PlaneFromPoints(aSymAxis(0),aSymAxis(1),ZAxis)
+			If Not IsArray(aSymPlane) Then Exit Sub
+			
+		ElseIf UCase(sSymPlane) = "3PT" Then
+			Dim  a2pts, aYPt
+			Rhino.EnableRedraw(True)
+			
+			a2Pts = Rhino.GetPoints(True,False,"Plane origin", "Plane X axis",2)
+			If Not IsArray(a2Pts) Then Exit Sub
+			
+			Dim sTempLine: sTempLine = Rhino.AddLine (a2Pts(0), a2Pts(1))
+			If UBound(a2pts) = 1 Then
+				aYPt = Rhino.GetPoint("Plane Y axis",a2Pts(0))
+				Rhino.DeleteObject sTempLine
+				If Not isArray(aYPt) Then Exit Sub
+			End If	
+			
+		Else
+			
+			Rhino.EnableRedraw(True)
+			Exit Sub
+				
+		End If
+				
+		If UCase(sSymPlane) = "3PT" Then
+
+			aSymPlane = Rhino.PlaneFromPoints(a2Pts(0), a2Pts(1),aYPt)
+			If Not IsArray(aSymPlane) Then Exit Sub
+		End If
+		
+		aCVData = getSymCV(sCrv,aSymPlane, CrvEnd, aWeights)
+		
+		Dim aCVLoc()
+		n = 0 
+		Dim arr
+		
+		If IsArray(aCVData) Then
+			
+			For Each arr In aCVData
+				ReDim Preserve aCVLoc(n)
+				aCVLoc(n) = aCVData(n)(0)
+				ReDim Preserve aCVWeights(n)
+				aCVWeights(n) = aCVData(n)(1)
+				n = n + 1
+			Next
+			
+		Else 
+			
+			MsgBox "Error encountered, the curve was not changed."
+			Rhino.EnableRedraw(True)
+			Exit Sub
+			
+		End If
+			
+		Dim intDeg: intDeg = Rhino.CurveDegree(sCrv)
+
+		If Rhino.IsPolyline(sCrv) Then
+			
+			sNewCrv = Rhino.AddPolyline (aCVLoc)
+			
+		Else
+			
+			If intDeg > UBound(aCVLoc) Then
+				intDeg = UBound(aCVLoc)
+			End If
+			
+			Dim aKnots(), Num
+			
+			Num=((uBound(aCVLoc)+IntDeg)-1)
+			
+			For n = 0 To intDeg-1
+			
+				ReDim Preserve aKnots(n)
+				aKnots(n) = 0
+			
+			Next
+			
+			Dim r: r =1
+			
+			For n = intDeg To (num-intDeg)
+				ReDim Preserve aKnots(n)
+				aKnots(n) = r
+				r = r + 1
+			Next
+			
+			For n = ((num-intDeg)+1) To num
+				ReDim Preserve aKnots(n)
+				aKnots(n) = r
+			Next
+			
+			sNewCrv = Rhino.AddNURBSCurve (aCVLoc,aKnots,IntDeg, aCVWeights)
+
+		End If		
+		
+	ElseIf Rhino.IsArc(sCrv) Or Rhino.IsLine(sCrv) Then
+		
+		Rhino.EnableRedraw(True)
+		Dim SymPt
+		Dim Vec1, Vec2, Pt2
+		
+		symPt = Rhino.GetPointOnCurve(sCrv,"Curve midpoint")
+		Rhino.EnableRedraw(False)
+
+		If Not IsArray(symPt) Then 
+			Rhino.EnableRedraw(True)
+			Exit Sub
+		End If
+	
+		If Rhino.IsLine(sCrv) Then
+			
+			If CrvEnd = 0 Then
+		
+				vec1 = Rhino.VectorCreate(Rhino.CurveStartPoint(sCrv),SymPt)
+				Vec1 = Rhino.VectorReverse(Vec1)
+				Pt2 = Rhino.PointAdd(symPt, vec1)
+			
+				sNewCrv =	Rhino.AddLine (Rhino.CurveStartPoint(sCrv),pt2)
+			Else
+				vec1 = Rhino.VectorCreate(Rhino.CurveEndPoint(sCrv),SymPt)
+				Vec1 = Rhino.VectorReverse(Vec1)
+				Pt2 = Rhino.PointAdd(symPt, vec1)
+			
+				sNewCrv = Rhino.AddLine (Rhino.CurveEndPoint(sCrv),pt2)
+			End If
+			
+		ElseIf Rhino.IsArc(sCrv) Then
+			
+			Dim aCen: aCen = Rhino.ArcCenterPoint(sCrv)
+			Dim aAng , dblAng
+			Dim dblRad: dblRad = Rhino.ArcRadius(sCrv)
+			
+			Vec1 = Rhino.VectorCreate(Rhino.CurveStartPoint(sCrv), aCen)
+			Vec2 = Rhino.VectorCreate(Rhino.CurveMidPoint(sCrv), aCen)
+			
+			Dim ArcPlane
+			
+			If CrvEnd = 0 Then
+				aAng = Rhino.Angle2( Array(aCen, Rhino.CurveStartPoint(sCrv)),Array(aCen,SymPt))
+				dblAng = aAng(0)
+				ArcPlane = Rhino.PlaneFromFrame( aCen, vec1, vec2)
+			Else
+				aAng = Rhino.Angle2( Array(aCen,SymPt),Array(aCen, Rhino.CurveEndPoint(sCrv)))
+				dblAng = aAng(0)
+				ArcPlane =Rhino.PlaneFromFrame( aCen, vec2, vec1)
+			End If
+			
+		'	DrawPlaneframe arcPlane,5 'TEST
+			sNewCrv = Rhino.AddArc (arcPlane,dblrad,2*dblAng)
+		
+		Else Exit Sub
+		End If
+
+	End If
+	
+	If Not isNull(sNewCrv) Then
+		If Rhino.ObjectGripsOn(sCrv) Then
+			Rhino.EnableObjectGrips SNewCrv, True
+		End If
+	
+		Dim LngColor: LngColor = Rhino.ObjectColor(sCrv)
+		Dim slayer: sLayer = Rhino.Objectlayer(sCrv)
+		Dim sLineType: sLineType = Rhino.ObjectLinetype(sCrv)
+		Dim dblPrint: dblPrint = Rhino.ObjectPrintWidth(sCrv)
+		Dim lngPrintColor: LngPrintColor = Rhino.ObjectPrintColor(sCrv)
+		Dim aGroups : aGroups = Rhino.ObjectGroups(sCrv)
+		
+
+		If Not Rhino.IsLine(sNewCrv) Then
+			Rhino.ObjectColor sNewCrv,lngColor	
+			Rhino.ObjectLayer sNewCrv, sLayer
+			Rhino.ObjectLinetype sNewCrv,sLineType
+			Rhino.ObjectPrintWidth sNewCrv, dblPrint
+			Rhino.ObjectPrintColor sNewCrv,lngPrintColor
+		End If
+		
+		If isArray(aGroups) Then
+			
+			Dim sGroup
+			For Each sGroup In aGroups
+				Rhino.AddObjectToGroup sNewCrv,sGroup
+			
+			Next
+			
+		End If	
+		
+		Rhino.DeleteObject sCrv
+	Else
+		MsgBox	"The curve was not changed."
+	End If
+	
+	Rhino.EnableRedraw(True)
+	
+End Sub
+
+Function GetSymCV(sCrv,SymPlane,crvEnd, aCVWeights)
+	
+	Dim Even: Even = False
+	Dim aCV: aCV = Rhino.CurvePoints(sCrv)
+
+	'determine whether the cv count is even or odd
+	If IsIntegerEven(Ubound(aCV)+1) Then Even = True
+	
+	Dim intMid
+	
+	'intMid is the CV one over towards the start point from the middle.
+	If Even = False Then
+		intMid = (Ubound(aCV)/2)-1
+	Else 
+		intMid = (Ubound(aCV)-1)/2
+	End If
+	
+	Dim Result
+	Dim dblTol: DblTol = 10 * (Rhino.UnitAbsoluteTolerance)
+
+	Dim TestPt
+	
+	If CrvEnd = 1 Then 'curve pick is at end point
+		Call	ReverseArray(aCV)' flip the order of the points
+		Call	ReverseArray(aCVWeights)
+	End If
+	
+	TestPt =aCV(0)
+	
+	Dim TargPt,TestVec
+	
+	'get the plane direction to test against
+	TargPt = Rhino.PlaneClosestPoint(SymPlane,TestPt) 
+	TestVec = Rhino.VectorCreate(TestPt,TargPt)
+	
+	'find if the sym-plane normal is parallel 
+	'or anti-parallel to the testVec
+	Dim intDir: intDir = Rhino.IsVectorParallelTo(TestVec,SymPlane(3))
+	
+	Dim n, i,k,r, aSymCV(), aBaseCV()
+	n = 1
+	i = 0
+	r = 0
+	
+	k = False
+
+	'the array of cv's to keep
+	ReDim Preserve aBaseCV(0)
+	aBaseCV(0) = Array(aCV(0), aCVWeights(0),k)
+	
+	
+	Dim Bound:Bound = UBound(aCv)
+	Dim tempPt, tempVec
+	Dim Num: Num =(Ubound(aCV)-2)
+	
+	
+	Testpt = aBaseCV(0)
+	TargPt = Rhino.PlaneClosestPoint(SymPlane,testPt(0))
+	TestVec = Rhino.VectorScale(Rhino.VectorReverse(Rhino.VectorCreate(TestPt(0),TargPt)),2)
+	
+	Dim EndptLoc: EndPtLoc = Rhino.POintAdd(TestPt(0),TestVec)
+		
+	Dim Endpt: EndPt = array(EndPtLoc,aCVWeights(0), False)
+	
+	
+	'*******************************
+	'*******************************
+	If Num > 0 Then 'if the curve has more than 3 points
+		
+		For i = 1 To intMid
+		
+			k = False 'mid point switch- if true the point is near the mirror plane
+		
+			TestPt = aCV(i)
+			'		Dim x: x = Rhino.DistanceToPlane(SymPlane, TestPt)
+			If abs(Rhino.DistanceToPlane(SymPlane, TestPt))< dblTol Then
+				k = True 'the point location is very close to the mirror plane
+			End If
+			
+			TargPt = Rhino.PlaneClosestPoint(SymPlane,testPt)
+			TestVec = Rhino.VectorCreate(TestPt,TargPt)
+			
+			'add the current CV info to an array if it is not on the center plane
+			'and if it is on the starting side of the plane
+			
+			If  Rhino.IsVectorParallelTo(TestVec,SymPlane(3)) = intDir And k = False Then
+				
+				ReDim Preserve aBaseCV(n)
+				aBaseCV(n) = Array(ACv(i), aCvWeights(i),k)
+				
+			ElseIf  Rhino.IsVectorParallelTo(TestVec,SymPlane(3)) <> intDir And k = False Then
+				'msgbox "ping"	
+				tempVec = Rhino.VectorReverse(testVec)
+				tempPt = rhino.PointAdd(targPt, tempVec)
+				ReDim Preserve aBaseCV(n)
+				aBaseCV(n) = Array(TempPt, aCvWeights(i),k)
+				testVec = tempVec
+			End If
+			
+			'if the point is not near the mirror plane,
+			'add a symmetrical CV location to an array
+			If k = False Then
+				tempvec = Rhino.VectorReverse(testVec)
+				ReDim Preserve aSymCV(r)
+				aSymCV(r) = Array(Rhino.PointAdd(TargPt,TempVec), aCvWeights(i),k)
+				r = r +1
+			End If
+			
+			n = n +1
+
+		Next
+		
+	End If
+	'*******************************
+	'*******************************
+
+	Dim MidPt
+		
+	If Even = False Then
+		temp = aCV(intMid+1)
+		n = intMid+1
+		TargPt = Rhino.PlaneClosestPoint(SymPlane,temp)
+		MidPt = array(TargPt,aCVWeights(n),False)
+	End If
+	
+	Dim tempCV
+	
+	If isUpperBound(aSymCV) Then
+		If UBound(aSymCV)>0 Then
+			'	If CrvEnd = 1 Then
+			Call ReverseArray  (aSymCV)
+			'	End If
+		End If
+		'	Else Exit Function
+	End If
+	
+	Dim temp2, temp
+	
+	If Even = False Then
+		
+		If Ubound(aCV) > 2 Then
+			
+			Temp = Rhino.JoinArrays(aBaseCV,array(MidPt))
+			temp2 = Rhino.JoinArrays(temp, aSymCv)
+			result = Rhino.JoinArrays(temp2,array(endPt))
+			
+		Else
+			
+			Temp = Rhino.JoinArrays(abaseCV,array(Midpt))
+			Result = Rhino.JoinArrays(temp, array(endPt))
+			
+		End If
+		
+	Else
+		
+		temp = Rhino.JoinArrays(aBaseCV,aSymCV)
+		Result =Rhino.JoinArrays(temp,array(EndPt))
+		
+	End If
+	
+	GetSymCV = Result
+	
+End Function
+
+Function GetCurveEnd(sCrv,param)
+	
+	Dim aparam: aparam = Rhino.CurveDomain(sCrv)
+	
+	Dim Len1: Len1 = Rhino.CurveLength(sCrv,,array(aparam(0),param))
+	Dim Len2: Len2 = Rhino.CurveLength(sCrv,,array(param,aparam(1)))
+	
+	If Len1<Len2 Then
+		GetCurveEnd = 0 
+	Else GetCurveEnd = 1
+	End If
+
+End Function
+
+Function GetAutoSymPlaneDir(sCrv,sDir)
+
+	Dim CrntPlane: CrntPlane = Rhino.ViewCplane
+
+	Dim aStart: aStart = Rhino.CurveStartPoint(sCrv)
+	Dim aEnd: aEnd = Rhino.CurveEndPoint(sCrv)
+	Dim aMid: aMid = AveragePoints(array(aStart,aEnd))
+	Dim aMidPlane: aMidPlane = Rhino.XformWorldToCPlane(aMid,CrntPlane)
+	Dim aEndPLane: aEndPlane = Rhino.XformWorldToCPlane(aEnd,CrntPlane)
+	
+	Dim Pt1:Pt1 = Rhino.XformCPlaneToWorld(array(aMidPlane(0), aMidPlane(1), 0),CrntPlane)
+	Dim Pt2
+	
+	If sDir = "Y" Then
+		
+		Pt2 = Rhino.XformCPlaneToWorld(array(aMidPlane(0)+1, aMidPLane(1), 0),CrntPlane)
+		
+	ElseIf sDir = "X" Then
+	
+		Pt2 = Rhino.XformCPlaneToWorld(array(aMidPlane(0), aMidPlane(1)+1, 0),CrntPlane)
+	
+	Else
+		
+		Pt1 = Rhino.XformCPlaneToWorld(array(aMidPlane(0), aMidPlane(1), 0),crntPlane)
+		Pt2 = Rhino.XformCPlaneToWorld(array(aEndPlane(0), aEndPlane(1), 0),crntPlane)
+
+	End If
+	
+	Dim Vec: Vec = Rhino.VectorCreate(Pt2,Pt1)
+	Dim Result: result = Rhino.PlaneFromNormal(aMid,Vec)
+
+	Rhino.AddPlaneSurface result, 10
+	
+	GetAutoSymPlaneDir = Result
+			
+End Function
+	
+Function AveragePoints(arrPts)
+	'Finds the average location of an array
+	'of points.
+
+	Dim X, Y, Z
+	Dim i
+	
+	X = 0
+	Y = 0
+	Z = 0
+
+	For i=0 To UBound (arrPts)
+			
+		'add all the X values
+		X = X+arrPts(i)(0)
+	
+		'add all th Y values
+		Y = Y+arrPts(i)(1)			
+	
+		'add all the Z values
+		Z = Z+arrpts(i)(2)
+	Next
+
+	AveragePoints  =array(X/(UBound(arrPts)+1), Y/(UBound(arrPts)+1), Z/(UBound(arrPts)+1))
+
+End Function
+
+Sub DrawVector(aPt, aVec, scale)
+	
+	'Test function
+	Dim apt2: aPt2 = Rhino.POintAdd(apt,aVec)
+	
+	Dim sLine: sLine = Rhino.AddLine (aPt,aPt2)
+	Rhino.curveArrows sLine,2
+	
+End Sub 
+
+Sub ReverseArray(ByRef arrIn)
+ 
+	Dim i, j, last, half, temp
+	last = UBound(arrIn)
+	half = Int(last/2)
+ 
+	For i = 0 To half
+		temp = arrIn(i)
+		arrIn(i) = arrIn(last-i)
+		arrIn(last-i) = temp
+	Next
+ 
+End Sub 
+
+Function CplaneToWorldPts(arrPts)
+
+	Dim arrPlane, i, Result
+	arrPlane = Rhino.ViewCplane
+	For i = 0 To UBound (arrPts)
+
+		Result = Rhino.XformCPlaneToWorld (arrPts(i), arrPlane)
+		ReDim Preserve arrOutput(i)
+		arrOutput(i) = Result
+	Next
+
+	CplaneToWorldPts = arrOutput
+
+End Function
+
+Function IsStringInArray(item, arr, intCase)
+	'Non case-sensitive= 0, case-sensitive = 1
+	Dim result :  Result = False
+	Dim sItem
+	
+	If isUpperBound(arr) Then
+		
+		If intCase = 0 Then
+			For Each sItem In arr
+				If LCase(sItem) = LCase(Item) Then
+					Result = True
+					Exit For
+				End If
+			Next
+		Else
+			For Each sItem In arr
+				If sItem = Item Then
+					Result = True
+					Exit For
+				End If
+			Next	
+		End If
+		
+	End If
+	
+	IsStringInArray = Result
+	
+End Function
+
+Function IsIntegerEven(inty)
+
+	Dim Result: result = False
+	
+	If CInt(inty/2) = Inty/2 Then Result = True
+	
+	IsIntegerEven = Result
+	
+End Function
+
+Function IsUpperBound(ByRef arr)
+
+	IsUpperBound = False
+
+	If IsArray(arr) Then
+
+		On Error Resume Next
+
+		UBound arr
+
+		If Err.Number = 0 Then IsUpperBound = True
+
+	End If
+
+End Function
+
+
+Sub DrawPlaneFrame (aPlane, dblScale)
+	
+	Dim pt0: Pt0 =aPlane(0)
+	
+	Dim vec1: vec1 = Rhino.VectorScale(aPlane(1),dblScale)
+	Dim pt1: Pt1 = Rhino.PointAdd (aPlane(0),vec1)
+	
+
+	Dim vec2: vec2 = Rhino.VectorScale(aPlane(2),dblScale)
+	Dim pt2: Pt2 = Rhino.PointAdd (aPlane(0),Vec2)	
+
+	Dim vec3: vec3 = Rhino.VectorScale(aPlane(3),dblScale)
+	Dim pt3: Pt3 = Rhino.PointAdd (aPlane(0),Vec3)	
+	
+	Dim Line1: Line1 = Rhino.AddLine (Pt0,Pt1)
+	Dim Line2: Line2 = Rhino.AddLine (Pt0,pt2)
+	Dim Line3: Line3 = 	Rhino.AddLine (Pt0,Pt3)
+	
+	Rhino.ObjectColor line1, vbRed
+	Rhino.ObjectColor line2, vbGreen
+	Rhino.ObjectColor line3, vbBlue
+	
+	Dim sgrp: sGrp = Rhino.AddGroup
+	
+	Rhino.AddObjectsToGroup array(Line1,Line2,Line3),sGrp
+	
+End Sub

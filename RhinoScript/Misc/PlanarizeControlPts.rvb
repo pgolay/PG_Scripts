@@ -1,0 +1,35 @@
+Option Explicit
+'Script written by Pascal
+
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.addAlias "PlanarizeControlPts", "! _-NoEcho _-Runscript PlanarizeControlPts"
+
+
+'Call PlanarizeControlPts()
+Sub PlanarizeControlPts()
+	
+	Dim aGrips: aGrips = Rhino.GetObjectGrips("Select control points to planarize.", True, True)
+	If Not isArray(aGrips) Then Exit Sub
+	
+	Dim sId, i
+	sId = aGrips(0)(0)
+	
+
+	Dim Bound: Bound = UBound(aGrips)
+	Dim aLoc
+	ReDim aLoc(Bound)
+	
+	For i = 0 To Bound
+		aLoc(i) = Agrips(i)(2)
+	Next
+	Dim Plane: Plane = Rhino.PlaneFitFromPoints(aLoc)
+	
+	For i = 1 To Bound - 1
+		Rhino.ObjectGripLocation sId, aGrips(i)(1), Rhino.PlaneClosestPoint(Plane, aGrips(i)(2))
+	Next
+	
+	
+	
+End Sub
+

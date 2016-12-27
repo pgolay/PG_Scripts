@@ -1,0 +1,342 @@
+Option Explicit
+'Script written by Pascal
+' Friday, August 22, 2008 
+Private OldBlur , OldWeld, OldDelete, oldVary, OldRadius,OldFinishAngle
+
+If IsEmpty(oldBlur) Then
+	OldBlur = 1	
+End If
+
+If IsEmpty(oldWeld) Then
+	OldWeld = "Weld"	
+End If
+
+If IsEmpty(oldDelete) Then
+	OldWeld = "Leave"	
+End If
+
+If IsEmpty(oldVary) Then
+	OldVary= "XDirection"	
+End If
+If IsEmpty(oldRadius) Then
+	OldRadius= 1	
+End If
+
+If IsEmpty(OldFinishAngle) Then
+	OldFinishAngle = 22.5	
+End If
+
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "BlurMeshvariable","_NoEcho _-Runscript (BlurMeshVariable)"
+
+Sub BlurMeshVariable()
+
+	
+	Dim SObj: sObj = Rhino.GetObject("Select mesh",32,True)
+	If isNull(sObj) Then Exit Sub
+	
+	Dim DblBlur: dblBlur = Rhino.GetReal("Blur amount in model units",oldBlur)
+	If Not isnumeric (dblBlur) Then Exit Sub
+	OldBlur = dblBlur
+	
+	Dim vary: vary = Rhino.GetString("Vary blur with", oldvary,array("XDirection","YDirection","ZDirection","AlongCurve", "ProfileCurve", "Distance"))
+	If isNull(Vary) Then Exit Sub
+	If Not Ubound(Filter(array("XDirection","YDirection","ZDirection","AlongCurve", "ProfileCurve", "Distance"), Vary)) > -1 Then Exit Sub
+	OldVary = Vary
+	
+	Dim aBB: aBB = Rhino.BoundingBox(sObj,Rhino.CurrentView)
+	
+	Dim tempCrv,SelCurve
+	SelCurve = False
+	
+	If lCase(vary) = "alongcurve" Or lCase(vary) = "profilecurve"  Then
+		
+		tempCrv = Rhino.GetObject("Select curve.",4)
+		If isNull(tempCrv) Then Exit Sub
+		SelCurve = True
+		
+	ElseIf lCase(vary) = "distance" Then
+		tempCrv = Rhino.GetObject("Select object.",1+2+4+8+16)
+		
+		If isNull(tempCrv) Then Exit Sub
+		
+		Dim radius: radius = Rhino.GetReal("Radius",Oldradius)
+		If Not isNumeric(Radius) Then Exit Sub
+		Oldradius = radius
+		SelCurve = True
+		
+	ElseIf lCase(vary) = "xdirection" Then
+		Rhino.EnableRedraw(False)
+		tempCrv = Rhino.AddLine (aBB(0),aBB(1))
+	
+	ElseIf lCase(vary) = "ydirection" Then
+		Rhino.EnableRedraw(False)
+		tempCrv = Rhino.AddLine (aBB(0),aBB(3))
+
+	ElseIf	lCase(vary) = "zdirection" Then
+		Rhino.EnableRedraw(False)
+		tempCrv = Rhino.AddLine (aBB(0),aBB(4))
+
+	End If
+	
+	Dim Control, Style
+	
+	If Not lcase(vary) = "profilecurve" Then
+		
+		If Not lCase(Vary) = "distance" Then
+			
+			Dim Dom: Dom = Rhino.CurveDomain(tempCrv)
+			Control = array(tempCrv,Dom(0),Dom(1))
+			style = 0
+			
+		ElseIf lCase(Vary) = "distance" Then
+			control = array(tempCrv,Radius)
+			style = 2
+		End If
+	
+	Else
+		'need distance of the curve from x at the
+		'proportional bb x distance of the mesh point
+		Dim aBBCrv:aBBCrv = Rhino.BoundingBox(tempCrv)
+		Dim CrvXlen: CrvXLen = Rhino.Distance(aBBCrv(0), aBBCrv(1))
+		Dim CrvYMax: CrvYMax= aBBCrv(3)(1)
+		Dim CrvYMin: CrvYMin = aBBCrv(1)(1)
+		
+		Dim YMax: If abs(CrvYmax) > abs(CrvYMin) Then
+			Ymax = CrvYmax
+		Else
+			Ymax = CrvYMin(1)
+		End If
+			
+		Dim MeshMinX: MeshMinX = aBB(0)(0)
+		Dim MeshMaxX: MeshMaxX = aBB(1)(0)
+
+		Control = array(tempCrv, CrvXLen, CrvYMin, CrvYMax, MeshMinX, MeshMaxX, YMax)
+		style = 1
+	End If
+	
+	Dim Weld: Weld = Rhino.GetString("Mesh finish",oldWeld,array("Smoothed","Faceted","Gappy", "Custom"))
+	If isNull(Weld) Then Exit Sub
+	If Not Ubound(Filter(array("Smoothed","Faceted","Gappy", "Custom"), Weld)) > -1 Then Exit Sub
+	OldWeld = Weld
+	
+	dim FinishAngle
+	if lcase(Weld) = "custom" then
+		FinishAngle = Rhino.GetReal("Smoothing angle" , OldFinishAngle, 0,180)
+	End If
+	If not isNumeric (FinishAngle) then exit sub
+	OldFinishAngle = FinishAngle
+	
+	Dim Delete: Delete = Rhino.GetString("Delete input?",oldDelete,array("Delete","Hide","Leave"))
+	If isNull(Delete) Then Exit Sub
+	If Not Ubound(Filter(array("Delete","Hide","Leave"), Delete)) > -1 Then Exit Sub
+	OldDelete = Delete
+	
+
+	Rhino.EnableRedraw(False)
+	
+	Dim TempMesh: TempMesh = Rhino.CopyObject (sObj)
+	Rhino.UnselectAllObjects
+	Rhino.SelectObject tempMesh
+	
+	If lCase(Weld) = "smoothed" Or lCase(Weld) = "faceted" or lCase(Weld) = "custom"  Then
+		Rhino.Command "_Weld 180 _Enter", false
+	Else
+		Rhino.Command "_Unweld 0 _Enter", false
+
+	End If
+	
+	Dim aVert: aVert = Rhino.MeshVertices(TempMesh)
+	Dim afaceVerts : aFaceVerts = Rhino.MeshFaceVertices(TempMesh)
+	Dim aFaceNorms: aFaceNorms = Rhino.MeshFaceNormals(TempMesh)
+	Dim aTextCoord: aTextCoord = Rhino.MeshTextureCoordinates(TempMesh)
+	Dim aVertexNorms: aVertexNorms = Rhino.MeshVertexNormals(TempMesh)
+	
+	Rhino.DeleteObject tempMesh
+	Dim aNewVert
+	If lcase(vary) = "profilecurve" Then
+		
+		aNewVert = VariableRandomizePts(aVert, dblBlur, control,1)
+		'Dim aNewVertexNorms:	anewVertexNorms = RandomizePts (aVertexNorms)
+		
+	
+	ElseIf lCase(Vary) = "distance" Then
+		aNewVert = VariableRandomizePts (aVert, dblBlur, Control,2)
+	Else
+		aNewVert = VariableRandomizePts (aVert, dblBlur, Control,0)
+	End If
+	
+	
+	Dim sMesh : sMesh = Rhino.AddMesh(anewVert,aFaceVerts,aVertexNorms,atextCoord)
+	
+	If Not isNull(sMesh) Then
+		Rhino.SelectObject smesh
+		Rhino.Command"RebuildMeshNormals", false
+		
+		If Lcase(Delete) = "delete" Then
+			Rhino.DeleteObject sObj
+		ElseIf Lcase(Delete) = "hide" Then
+			Rhino.HideObject sObj
+		End If
+		
+	End If
+	
+	If	lcase(Weld)= "faceted" Then
+		Rhino.SelectObject smesh
+		Rhino.Command "Unweld 0 ", False
+		
+	elseif lcase(Weld) = "custom" then
+		Rhino.SelectObject smesh
+		Rhino.Command "Unweld " & FinishAngle & " _Enter", False
+	End If
+	
+	If  SelCurve=False Then Rhino.DeleteObject tempCrv
+	Rhino.EnableRedraw
+	
+End Sub
+
+
+Function VariableRandomizePts( aPts, max, Control, Style)
+	'randomizes a point according to its position along a curve
+	'Control = array(
+	Dim aPt, atemp(), n, temp
+	n = 0
+	Dim Factor
+	Dim Min: Min = 0
+	
+	Dim Random: random = rnd
+	Dim tempMax
+	
+	For Each aPt In apts
+			
+		If style = 0 Then
+			tempMax = getMaxAlong(apt,control)*Max
+		ElseIf Style = 1 Then
+			tempMax = getMaxFrom(apt,control)*Max
+		Else
+			tempMax = getMax_Distance(apt,control)*Max
+		End If
+				
+		temp = RandomDouble(TempMax,Min,2)
+		If rnd >= 0.5Then
+			apt(0) = aPt(0)+temp
+		Else
+			apt(0) = aPt(0)-temp
+		End If
+			
+		temp = randomDouble(TempMax,Min,2)
+		If rnd >= 0.5Then
+			apt(1) = aPt(1)+temp
+		Else
+			apt(1) = aPt(1)-temp
+		End If
+		temp = randomDouble(TempMax,Min,2)
+		If rnd >= 0.5Then
+			apt(2) = aPt(2)+temp
+		Else
+			apt(2) = aPt(2)-temp
+		End If
+		ReDim Preserve atemp(n)
+		atemp(n) = aPt
+		n = n +1
+	Next
+	
+	
+	'	For Each aPt In apts
+	'		tempMax = getMax(apt,control)*Max
+	'		'Randomize
+	'		temp = RandomDouble(tempMax,Min,2)
+	'		
+	'		If rnd >= 0.5 Then
+	'			
+	'			apt(0) = aPt(0)+ temp
+	'			apt(1) = aPt(1)+ temp
+	'			apt(2) = aPt(2)+ temp
+	'					
+	'		Else
+	'					
+	'			apt(0) = aPt(0)- temp
+	'			apt(1) = aPt(1)- temp
+	'			apt(2) = aPt(2)- temp
+	'			
+	'		End If
+	'				
+	'		ReDim Preserve atemp(n)
+	'		atemp(n) = aPt
+	'		n = n +1
+	'				
+	'	Next
+	
+	VariableRandomizePts= aTemp
+	
+End Function
+
+
+Function RandomDouble(Max, Min, IntRound)
+		
+	'Randomize
+	RandomDouble = round((min + (rnd*(max-min))),intRound)
+			
+End Function
+
+Function GetMaxAlong(aPt,Control)
+	
+	Dim param: param = Rhino.CurveClosestPoint(Control(0),aPt)
+	GetmaxAlong = (Param - Control(1))/(Control(2)-Control(1))
+	
+End Function
+
+Function GetMaxFrom(aPt,Control)
+	
+	'	Control = array(tempCrv,CrvXLen,CrvYMin,CrvYMax,MeshMinX,MeshMaxX, YMax)
+
+	Dim Proportion: Proportion = (apt(0)- Control(4))/(Control(5)-Control(4))
+	
+	Dim X : X = Proportion * Control(1)
+	'	Rhino.AddPoint array(X,0,0)
+	
+	
+	Dim TempLine:tempLine = Rhino.AddLine( array(X,Control(2),0),array(X,Control(3),0))
+	
+	
+	Dim CrvPt: CrvPt = Rhino.CurveCurveIntersection(Control(0),TempLine)(0,1)
+	Rhino.DeleteObject tempLine
+	
+	GetMaxFrom = CrvPt(1)/Control(6)
+	'	If apt(0) > 130 Then 
+	'		Rhino.Enableredraw
+	'		Rhino.AddLine apt,array(apt(0),0,0)
+	'		MsgBox GetmaxFrom
+	'	End If
+	
+End Function
+
+Function GetMax_Distance(aPt,Control)
+	
+	Dim tempCrv: TempCrv = Control(0)
+	Dim radius: radius = Control(1)
+	Dim testPt
+	
+	If Rhino.isPoint(tempCrv) Then 
+		testPt = Rhino.PointCoordinates(tempCrv)
+	ElseIf Rhino.IsCurve(tempCrv) Then
+		Dim Param: Param = Rhino.CurveClosestPoint(tempCrv,aPt)
+		testPt = Rhino.EvaluateCurve(tempCrv,param)
+	Else
+		'	param= 
+		testPt = Rhino.BrepClosestPoint(tempCrv,aPt)(0)
+	End If
+	
+	
+	Dim Distance: Distance = Rhino.Distance(aPt,TestPt)
+	
+	If Distance > Radius Then
+		
+		GetMax_Distance = 0
+	Else
+		GetMax_Distance = (radius-Distance)/Radius
+		
+	End If
+
+End Function

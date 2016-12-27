@@ -1,0 +1,21 @@
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile()
+Rhino.AddAlias "TargetDistance ", "_NoEcho _-Runscript (TargetDistance )"
+Rhino.AddAlias "CameraDistance", "_NoEcho _-Runscript (CameraDistance)"
+
+
+'TargetDistance()
+Sub TargetDistance()
+
+	Dim Dist: dist = Rhino.Distance(Rhino.ViewCamera(), Rhino.ViewTarget())
+	Rhino.Print "Camera to target distance = " & round(dist,4)
+	
+End Sub
+
+Sub CameraDistance()
+	
+	dim aPt: apt = Rhino.GetPoint ("Poiint to test")
+	If not isArray(apt) then exit sub
+	Dim Dist: dist = Rhino.Distance(Rhino.ViewCamera(),apt)
+	Rhino.Print "Camera to point distance = " & round(dist,4)
+	
+End Sub

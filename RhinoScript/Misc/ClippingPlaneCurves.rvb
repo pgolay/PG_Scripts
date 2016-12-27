@@ -1,0 +1,32 @@
+Option Explicit
+'Script written by Pascal
+' RMA
+'Script version Friday, February 08, 2013
+
+Rhino.AddStartUpScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "ClippingPlaneCurves", "_NoEcho _-Runscript (ClippingPlaneCurves)"
+
+'Call ClippingPlaneCurves()
+Sub ClippingPlaneCurves()
+	Dim sPlane: sPlane = Rhino.GetObject("Select clipping plane.", 536870912, True)
+	If isNull(sPlane) Then Exit Sub
+	
+	Dim aPlane: aPLane = Rhino.ClippingPlaneDefinition(sPlane)
+	
+	Dim aBB: aBB = Rhino.BoundingBox(Rhino.NormalObjects(), aPlane)
+	Rhino.EnableRedraw False
+	Rhino.SelectObjects(Rhino.NormalObjects())
+	
+	Dim aPts(3)
+	apts(0) = Rhino.PlaneClosestPoint(aPlane, aBB(0))
+	apts(1) = Rhino.PlaneClosestPoint(aPlane, aBB(1))
+	apts(2) = Rhino.PlaneClosestPoint(aPlane, aBB(2))
+	apts(3) = Rhino.PlaneClosestPoint(aPlane, aBB(3))
+	Dim sSrf: sSrf = Rhino.AddSrfPt(aPts)
+	
+
+	Rhino.Command "_IntersectTwoSets _SelID " & sSrf & " _Enter"
+	Rhino.DeleteObject sSrf
+	Rhino.EnableRedraw True
+	
+End Sub

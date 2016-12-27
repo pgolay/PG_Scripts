@@ -1,0 +1,150 @@
+﻿Option Explicit
+'Script written by Pascal
+' Friday, August 22, 2008 
+Private OldBlur , OldWeld, OldDelete
+
+If IsEmpty(oldBlur) Then
+	OldBlur = 1	
+End If
+
+If IsEmpty(oldWeld) Then
+	OldWeld = "Smoothed"
+End If
+
+If IsEmpty(oldDelete) Then
+	OldDelete = "Leave"	
+End If
+
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "BlurMesh","_NoEcho _-Runscript (BlurMesh)"
+
+Sub BlurMesh()
+	
+	Dim SObj: sObj = Rhino.GetObject("Select mesh",32,True)
+	If isNull(sObj) Then Exit Sub
+	
+	Dim DblBlur: dblBlur = Rhino.GetReal("Blur amount in model units",oldBlur)
+	If Not isnumeric (dblBlur) Then Exit Sub
+	OldBlur = dblBlur
+	
+	Rhino.EnableRedraw(False)
+	
+	Dim tempMesh: tempMesh = Rhino.CopyObject (sObj)
+	Rhino.UnselectAllObjects
+	Rhino.SelectObject tempMesh
+	
+	Dim Weld: Weld = Rhino.GetString("Mesh finish",oldWeld,array("Smoothed","Faceted","Gappy"))
+	If isNull(Weld) Then Exit Sub
+	If Not Ubound(Filter(array("Smoothed","Faceted","Gappy"), Weld)) > -1 Then Exit Sub
+	OldWeld = Weld
+	
+	If lCase(Weld) = "smoothed" Or lCase(Weld) = "faceted"  Then
+		Rhino.Command "Weld 180 "
+	Else
+		Rhino.Command "Unweld 0 "
+	End If
+	
+	Dim Delete: Delete = Rhino.GetString("Delete input?",oldDelete,array("Delete","Hide","Leave"))
+	If isNull(Delete) Then Exit Sub
+	If Not Ubound(Filter(array("Delete","Hide","Leave"), Delete)) > -1 Then Exit Sub
+	OldDelete = Delete
+
+	Dim aVert: aVert = Rhino.MeshVertices(TempMesh)
+	Dim afaceVerts : afaceVerts = Rhino.MeshFaceVertices(TempMesh)
+	Dim aFaceNorms: aFaceNorms = Rhino.MeshFaceNormals(TempMesh)
+	Dim aTextCoord: atextCoord = Rhino.MeshTextureCoordinates(TempMesh)
+	Dim aVertexNorms: avertexNorms = Rhino.MeshVertexNormals(TempMesh)
+	
+	Rhino.DeleteObject tempMesh
+	
+	Dim aNewVert:aNewVert = RandomizePts (aVert, dblBlur)
+	'Dim aNewVertexNorms:	anewVertexNorms = RandomizePts (aVertexNorms)
+	
+	Dim sMesh : sMesh = Rhino.AddMesh(anewVert,aFaceVerts,aVertexNorms,atextCoord)
+	If Not isNull(sMesh) Then
+		Rhino.SelectObject smesh
+		Rhino.Command"RebuildMeshNormals"
+		
+		If Lcase(Delete) = "delete" Then
+			Rhino.DeleteObject sObj
+		ElseIf Lcase(Delete) = "hide" Then
+			Rhino.HideObject sObj
+		End If
+		
+	End If
+	
+	If	lcase(Weld)= "faceted" Then
+		Rhino.SelectObject smesh
+		Rhino.Command "Unweld 0 ", False
+	End If
+
+	Rhino.EnableRedraw
+	
+End Sub
+
+
+Function RandomizePts( aPts, max)
+	Dim aPt, atemp(), n, temp
+	n = 0
+	
+	Dim Min: Min = 0
+	
+	Dim Random: random = rnd
+	For Each aPt In apts
+		
+		temp = RandomDouble(Max,Min,2)
+		If rnd >= 0.5Then
+			apt(0) = aPt(0)+temp
+		Else
+			apt(0) = aPt(0)-temp
+		End If
+		
+		temp = randomDouble(Max,Min,2)
+		If rnd >= 0.5Then
+			apt(1) = aPt(1)+temp
+		Else
+			apt(1) = aPt(1)-temp
+		End If
+		temp = randomDouble(Max,Min,2)
+		If rnd >= 0.5Then
+			apt(2) = aPt(2)+temp
+		Else
+			apt(2) = aPt(2)-temp
+		End If
+		ReDim Preserve atemp(n)
+		atemp(n) = aPt
+		n = n +1
+	Next
+	
+'	For Each aPt In apts
+'		randomize
+'		temp = randomDouble(Max,Min,2)
+'		If rnd >= 0.5Then
+'			apt(0) = aPt(0)+temp
+'			apt(1) = aPt(1)+temp
+'			apt(2) = aPt(2)+temp
+'			
+'		Else
+'			
+'			apt(0) = aPt(0)+temp
+'			apt(1) = aPt(1)+temp
+'			apt(2) = aPt(2)+temp
+'		End If
+'		
+'		ReDim Preserve atemp(n)
+'		atemp(n) = aPt
+'		n = n +1
+'		
+	'	Next
+	
+	RandomizePts = aTemp
+	
+End Function
+
+Function RandomDouble(Max, Min, IntRound)
+		
+	'Randomize
+	RandomDouble = round((min + (rnd*(max-min))),intRound)
+			
+End Function

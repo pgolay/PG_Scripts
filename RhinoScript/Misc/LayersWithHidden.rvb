@@ -1,0 +1,29 @@
+Option Explicit
+'Script written by Pascal
+'Script version Thursday, January 28, 2010
+
+Rhino.AddStartupScript Rhino.LastLoadedScriptFile
+Rhino.AddAlias "LayersWithHidden","noEcho _-Runscript (LayersWithHidden)"
+
+'Call LayersWithHidden()
+Sub LayersWithHidden()
+
+	Dim aHid: aHid = Rhino.HiddenObjects
+	If not isArray(aHid) then 
+		Rhino.Print "There are no hidden objects in this file."
+		exit sub
+	end if
+	
+	dim sHid, n, aLayers()
+	n = 0
+	For each sHid in aHid
+		redim preserve aLayers(n)
+		aLayers(n) = Rhino.ObjectLayer(sHid)
+		n = n + 1
+	Next
+	
+	Dim aCull: aCull = Rhino.CullDuplicateStrings(aLayers)
+	
+	Rhino.ListBox  aCull, "Layers with hidden objects"
+	
+End Sub
