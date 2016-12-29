@@ -1,27 +1,59 @@
 import rhinoscriptsyntax as rs
 import math #Use this to get sine and cosine.
 import Rhino.RhinoMath as rm #rhinoscriptsyntax.ToRadians() is missing
+import scriptcontext as sc
 
 def test():
     
+        #Assign variables to the sin and cos functions for use later.
     Sin = math.sin
     Cos = math.cos
+    
+    
     	# Acquire information for the garden path
-
+    	
+    	# set default values for the distances
+    default_hwidth = 1
+    default_trad = 1
+    default_tspace = 1
+    	
+    	
+    	# look for any previously used values stored in sticky and use those if available.
+    if sc.sticky.has_key("GP_WIDTH"):
+        default_hwidth = sc.sticky["GP_WIDTH"]
+        
+    if sc.sticky.has_key("GP_RAD"):
+        default_trad = sc.sticky["GP_RAD"]
+        
+    if sc.sticky.has_key("GP_Space"):
+        default_tspace = sc.sticky["GP_SPACE"]	
+    	    
+        #get the path direction, length and location from two points entered by the user
     sp = rs.GetPoint("Start point of path centerline")
     if sp is None: return
     
     ep = rs.GetPoint("End point of path centerline", sp)
     if ep is None: return
     
-    hwidth = rs.GetDistance(sp, 1,  second_pt_msg = "Half width of path")
+        #now ask the user what the distances should be, offering the defaults arrived at above
+        
+    hwidth = rs.GetDistance(sp, default_hwidth,  second_pt_msg = "Half width of path")
     if hwidth is None: return
     
-    trad = rs.GetDistance(sp, 1.0, second_pt_msg = "Radius of tiles")
+        #Store the new value in sticky for use next time
+    sc.sticky["GP_WIDTH"] = hwidth
+    
+    trad = rs.GetDistance(sp, default_trad, second_pt_msg = "Radius of tiles")
     if trad is None: return
     
-    tspac = rs .GetDistance(sp, 1.0, second_pt_msg = "Distance between tiles")
-    if tspac is None: return
+        #Store  the new value in sticky for use next time
+    sc.sticky["GP_RAD"] = trad
+    
+    tspace = rs .GetDistance(sp, default_tspace, second_pt_msg = "Distance between tiles")
+    if tspace is None: return
+    
+        #Store  the new value in sticky for use next time
+    sc.sticky["GP_SPACE"] = tspace
     
     	# Calculate angles
     
@@ -65,10 +97,13 @@ def test():
 
     # Draw the rows of tiles
     
-    #define a plane
+    #define a plane - 
+    #using the WorldXY plane the reults will always be added parallel to that plane, 
+    #regardless of the active plane where the points are picked.
+    
     plane = rs.WorldXYPlane()
     
-    pdist = trad + tspac
+    pdist = trad + tspace
     
     off = 0.0
     
@@ -90,10 +125,10 @@ def test():
             
             rs.AddCircle (plane, trad)
             
-            pltile = rs.Polar(pltile, angp90, tspac + trad + trad)
+            pltile = rs.Polar(pltile, angp90, tspace + trad + trad)
         
         
-        pltile = rs.Polar(pctile, angm90, tspac + trad + trad)
+        pltile = rs.Polar(pctile, angm90, tspace + trad + trad)
         
         while (rs.Distance(pfirst, pltile) < hwidth - trad):
         
@@ -101,13 +136,13 @@ def test():
             
             rs.AddCircle (plane, trad)
             
-            pltile = rs.Polar(pltile, angm90, tspac + trad + trad)
+            pltile = rs.Polar(pltile, angm90, tspace + trad + trad)
 
-        pdist = pdist + ((tspac + trad + trad) * Sin(rm.ToRadians(60))) #Missing rs.ToRadians()
+        pdist = pdist + ((tspace + trad + trad) * Sin(rm.ToRadians(60))) #Missing rs.ToRadians()
         
         if off == 0.0:
         
-            off = (tspac + trad + trad) * Cos(rm.ToRadians(60))
+            off = (tspace + trad + trad) * Cos(rm.ToRadians(60))
         
         else:
         
