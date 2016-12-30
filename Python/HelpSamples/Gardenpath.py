@@ -1,6 +1,5 @@
 import rhinoscriptsyntax as rs
-import math #Use this to get sine and cosine.
-import Rhino.RhinoMath as rm #rhinoscriptsyntax.ToRadians() is missing
+import math #Use this to get sine, cosine and radians.
 import scriptcontext as sc
 
 def test():
@@ -138,11 +137,11 @@ def test():
             
             pltile = rs.Polar(pltile, angm90, tspace + trad + trad)
 
-        pdist = pdist + ((tspace + trad + trad) * Sin(rm.ToRadians(60))) #Missing rs.ToRadians()
+        pdist = pdist + ((tspace + trad + trad) * Sin(math.radians(60)))
         
         if off == 0.0:
         
-            off = (tspace + trad + trad) * Cos(rm.ToRadians(60))
+            off = (tspace + trad + trad) * Cos(math.radians(60))
         
         else:
         
