@@ -3,29 +3,101 @@ import scriptcontext as sc
 import rhinoscriptsyntax as rs
 
 
+def GetInput():
+    while True:
+        x_div = 2
+        y_div = 2
+        z_div = 2
+        if sc.sticky.has_key("BOXDIVS"):
+            temp = sc.sticky["BOXDIVS"].split(",")
+            x_div = int(temp[0])
+            y_div = int(temp[1])
+            z_div = int(temp[2])
+            
+        slow = False
+        if sc.sticky.has_key("POINTREAD_METHOD"):
+            slow = sc.sticky["POINTREAD_METHOD"]
+            
+        go = Rhino.Input.Custom.GetOption()
+        opX = Rhino.Input.Custom.OptionInteger(x_div,True, 1)
+        opY = Rhino.Input.Custom.OptionInteger(y_div,True, 1)
+        opZ = Rhino.Input.Custom.OptionInteger(z_div,True, 1)
+        opSlow = Rhino.Input.Custom.OptionToggle(slow, "Fast", "Slow")
+        
+        go.AddOptionInteger("XBoxes", opX)
+        go.AddOptionInteger("YBoxes", opY)
+        go.AddOptionInteger("ZBoxes", opZ)
+        go.AddOptionToggle("Method", opSlow)
+        go.AcceptNothing(True)
+        go.SetCommandPrompt("Set bounding box divisions")
+        
+        ret = go.Get()
+        
+        if( go.CommandResult() != Rhino.Commands.Result.Success ):
+            return
+        if  go.CommandResult() == Rhino.Commands.Result.Cancel:
+            return
+            
+        if  go.CommandResult() == Rhino.Commands.Result.Nothing:
+            print "Nothing"
+            x_div = opX.CurrentValue
+            y_div = opY.CurrentValue
+            z_div = opZ.CurrentValue
+            return x_div,y_div,z_div
+            
+        if ret == Rhino.Input.GetResult.Option:
+            x_div = opX.CurrentValue
+            y_div = opY.CurrentValue
+            z_div = opZ.CurrentValue
+            slow = opSlow.CurrentValue
+            sc.sticky["BOXDIVS"] = str(x_div) + "," + str(y_div) + ","+ str(z_div)
+            sc.sticky["POINTREAD_METHOD"] = slow
+            continue
+            
+        else: return x_div,y_div,z_div, slow
+
 def DividePoints():
     
     file  = rs.OpenFileName()
-    
     if not file:return
 
-    pts = []
-    with open(file, "r") as f:
-        
-        max = [None, None, None]
-        min = [None, None, None]
-        
-        for line in f:
-                
+    input = GetInput()
+    if input is None : return
+    x_div,y_div,z_div, slow = input
+    
+    
+    # Get the overall bounding box <<<<<<<<<<<<<<<<<
+    max = [None, None, None]
+    min = [None, None, None]
+    
+    if not slow:
+        pts = []
+        with open(file, "r") as f:
+            
+            for line in f:
+                pt = rs.Str2Pt(line)
+                pts.append(pt)
+                for i in range(3): 
+                    if max[i] is None or max[i] < pt[i]: max[i] = pt[i]
+                    if min[i] is None or min[i] > pt[i]: min[i] = pt[i]
+                    
+    else:
+        f = open(file, "r")
+        line = f.readline().strip()
+        while line != "":
             pt = rs.Str2Pt(line)
-            pts.append(pt)
             for i in range(3): 
                 if max[i] is None or max[i] < pt[i]: max[i] = pt[i]
                 if min[i] is None or min[i] > pt[i]: min[i] = pt[i]
-
+            line = f.readline().strip()
+            
+        f.close()
+    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     max = Rhino.Geometry.Point3d(max[0], max[1], max[2])
     min = Rhino.Geometry.Point3d(min[0], min[1], min[2])
     bb = Rhino.Geometry.BoundingBox(min, max)
+    
     
     def bb_divide(bb, x_div, y_div, z_div):
         corners = bb.GetCorners()
@@ -44,60 +116,31 @@ def DividePoints():
                         boxes.append(Rhino.Geometry.BoundingBox(pt, pt+vecDiag))
         return boxes
     
-
-
-    def GetInput():
-        while True:
-            x_div = 2
-            y_div = 2
-            z_div = 2
-            if sc.sticky.has_key("BOXDIVS"):
-                temp = sc.sticky["BOXDIVS"].split(",")
-                x_div = int(temp[0])
-                y_div = int(temp[1])
-                z_div = int(temp[2])
-            go = Rhino.Input.Custom.GetOption()
-            opX = Rhino.Input.Custom.OptionInteger(x_div,True, 1)
-            opY = Rhino.Input.Custom.OptionInteger(y_div,True, 1)
-            opZ = Rhino.Input.Custom.OptionInteger(z_div,True, 1)
-            go.AddOptionInteger("XBoxes", opX)
-            go.AddOptionInteger("YBoxes", opY)
-            go.AddOptionInteger("ZBoxes", opZ)
-            go.AcceptNothing(True)
-            go.SetCommandPrompt("Set bounding box divisions")
-            
-            ret = go.Get()
-            
-            if  go.CommandResult() == Rhino.Commands.Result.Cancel:
-                return
-                
-            if  go.CommandResult() == Rhino.Commands.Result.Nothing:
-                print "Nothing"
-                x_div = opX.CurrentValue
-                y_div = opY.CurrentValue
-                z_div = opZ.CurrentValue
-                return x_div,y_div,z_div
-                
-            if ret == Rhino.Input.GetResult.Option:
-                x_div = opX.CurrentValue
-                y_div = opY.CurrentValue
-                z_div = opZ.CurrentValue
-                sc.sticky["BOXDIVS"] = str(x_div) + "," + str(y_div) + ","+ str(z_div)
-                continue
-                
-            else: return x_div,y_div,z_div
-    
-    x_div,y_div,z_div = GetInput()
-    
     bbs = bb_divide(bb, x_div,y_div,z_div)
     
     clouds = [Rhino.Geometry.PointCloud() for b in bbs]
-    for i in range(len(bbs)):
-        #rs.AddPoints(bbs[i].GetCorners())
-        for pt in pts:
-            if bbs[i].Contains(pt):
-               clouds[i].Add(pt) 
-               
+    
+    # read the points into the sub boxes <<<<<<<<<<<<<<
+    if not slow:
+        while len(pts) > 0:
+            pt = pts.pop()
+            for i in range(len(bbs)):
+                if bbs[i].Contains(pt):
+                    clouds[i].Add(pt)
+                    break
+    else:
+        f = open(file, "r")
+        line = f.readline().strip()
+        while line != "":
+            pt = rs.Str2Pt(line)
+            for i in range(len(bbs)):
+                if bbs[i].Contains(pt):
+                    clouds[i].Add(pt)
+                    break
+            line = f.readline().strip()
+    
+        f.close()
+    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                
     rs.EnableRedraw(False)
     n = 1
