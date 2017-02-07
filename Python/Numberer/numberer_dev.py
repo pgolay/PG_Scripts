@@ -44,7 +44,7 @@ def get_font():
 
 def Numberer():
     
-    crntNum = 0
+    crntNum = 1
     if sc.sticky.has_key("MyNum"):
         crntNum = sc.sticky["MyNum"]
         
@@ -56,7 +56,7 @@ def Numberer():
     if sc.sticky.has_key ("NumSuffix"):
         suffix = sc.sticky["NumSuffix"]
        
-    outputStyle = 0
+    outputStyle = 1
     if sc.sticky.has_key("NumOutputStyle"):
         outputStyle = sc.sticky["NumOutputStyle"]
         
@@ -169,7 +169,7 @@ def Numberer():
             if gp.OptionIndex()== opReset:
                 gi= Rhino.Input.Custom.GetInteger()
                 gi.AcceptNumber(True, True)
-                gi.SetDefaultInteger(0)
+                gi.SetDefaultInteger(1)
                 gi.SetCommandPrompt("Start numbering at ") 
                 numResult = gi.Get()
                 if gi.CommandResult() != Rhino.Commands.Result.Success:
@@ -179,8 +179,8 @@ def Numberer():
                     crntNum = num
                     sc.sticky["MyNum"]= num
                     continue
-                crntNum = 0
-                sc.sticky["MyNum"] = 0
+                crntNum = 1
+                sc.sticky["MyNum"] = 1
                 continue
                 
             elif gp.OptionIndex()== opPref:

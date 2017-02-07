@@ -44,7 +44,7 @@ def get_font():
 
 def Numberer():
     
-    crntNum = 0
+    crntNum = 1
     if sc.sticky.has_key("MyNum"):
         crntNum = sc.sticky["MyNum"]
         
