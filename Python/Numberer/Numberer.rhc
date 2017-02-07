@@ -2,7 +2,7 @@
 <RhinoScriptCompilerProject>
   <Plugin>
     <PluginName>Numberer</PluginName>
-    <PluginFolder>C:\Users\Pascal\Google Drive\Scripting\Numberer\</PluginFolder>
+    <PluginFolder>E:\dev\PG_Scripts\Python\Numberer\</PluginFolder>
     <AuthorName>Pascal</AuthorName>
     <AuthorEmail>pascal@mcneel.com</AuthorEmail>
     <AuthorPhone />
@@ -13,13 +13,13 @@ Seattle, WA
     <AuthorWebsite />
     <UpdateURL />
     <CopyrightMessage>Loading Numberer.rhp</CopyrightMessage>
-    <RhinoCommonOverride>C:\Projects\Scripts_PG\Compile_SR9\RhinoCommon.dll</RhinoCommonOverride>
+    <RhinoCommonOverride>E:\dev\GitHub\PG_Scripts\Python\V5 SR9 RhinoCommon\RhinoCommon.dll</RhinoCommonOverride>
   </Plugin>
   <Commands>
     <!--Compiled Script: Numberer-->
     <Command>
       <Name>Numberer</Name>
-      <Path>C:\Users\Pascal\Google Drive\Scripting\Numberer\numberer.py</Path>
+      <Path>E:\dev\PG_Scripts\Python\Numberer\numberer.py</Path>
       <Type>Normal</Type>
     </Command>
   </Commands>
